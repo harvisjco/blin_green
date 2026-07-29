@@ -17,6 +17,11 @@ export async function submitConsultation(
   const method = String(formData.get("method") ?? "").trim();
   const message = String(formData.get("message") ?? "").trim();
   const detail = String(formData.get("detail") ?? "").trim();
+  const utmSource = String(formData.get("utmSource") ?? "").trim().slice(0, 100);
+  const utmMedium = String(formData.get("utmMedium") ?? "").trim().slice(0, 100);
+  const utmCampaign = String(formData.get("utmCampaign") ?? "").trim().slice(0, 100);
+  const referrer = String(formData.get("referrer") ?? "").trim().slice(0, 300);
+  const landingPath = String(formData.get("landingPath") ?? "").trim().slice(0, 300);
 
   if (!name || !phone) {
     return { ok: false, error: "성함과 연락처를 입력해 주세요." };
@@ -26,7 +31,7 @@ export async function submitConsultation(
     const db = getDb();
     const [consultation] = await db
       .insert(consultations)
-      .values({ name, phone, area, method, message, detail })
+      .values({ name, phone, area, method, message, detail, utmSource, utmMedium, utmCampaign, referrer, landingPath })
       .returning();
 
     const [existingCustomer] = await db

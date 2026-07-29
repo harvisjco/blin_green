@@ -116,6 +116,10 @@ footer { padding:45px clamp(24px,5vw,78px) 68px; background:#f3f0e8; display:gri
 .admin-form-col button { align-self:flex-start; padding:9px 18px; border:0; border-radius:6px; background:var(--green); color:#fff; font-weight:700; font-size:13px; cursor:pointer; }
 .admin-meta { margin:12px 0 0; color:#8a948f; font-size:12px; }
 .admin-detail-text { margin:0; line-height:1.7; font-size:13px; }
+.admin-utm-examples { list-style:none; margin:12px 0 0; padding:0; display:flex; flex-direction:column; gap:10px; }
+.admin-utm-examples li { padding:10px 12px; background:#f8f7f3; border-radius:8px; font-size:12px; }
+.admin-utm-examples b { display:block; margin-bottom:4px; color:#3a4542; }
+.admin-utm-examples code { display:block; word-break:break-all; color:#1d5e58; font-size:11px; }
 .admin-table { width:100%; border-collapse:collapse; background:#fff; border:1px solid var(--line); border-radius:10px; overflow:hidden; font-size:13px; }
 .admin-table th, .admin-table td { padding:11px 12px; border-bottom:1px solid var(--line); text-align:left; white-space:nowrap; }
 .admin-table th { background:#f6f4ee; font-size:11px; letter-spacing:.04em; color:#5c6a65; }

@@ -6,6 +6,7 @@ import { usePathname } from "next/navigation";
 const NAV_ITEMS = [
   { href: "/admin", label: "문의 · 고객", icon: "☰" },
   { href: "/admin/calendar", label: "시공 일정", icon: "📅" },
+  { href: "/admin/channels", label: "채널 분석", icon: "📊" },
   { href: "/admin/products", label: "제품 · 단가", icon: "🏷" },
   { href: "/admin/insights", label: "AI 제안", icon: "✨" },
 ] as const;

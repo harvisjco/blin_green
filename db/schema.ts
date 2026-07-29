@@ -10,6 +10,12 @@ export const consultations = sqliteTable("consultations", {
   method: text("method").notNull().default(""),
   message: text("message").notNull().default(""),
   detail: text("detail").notNull().default(""),
+  // Marketing attribution captured from the visitor's landing URL at first touch.
+  utmSource: text("utm_source").notNull().default(""), // e.g. instagram, naver, google
+  utmMedium: text("utm_medium").notNull().default(""), // e.g. cpc, social, referral
+  utmCampaign: text("utm_campaign").notNull().default(""),
+  referrer: text("referrer").notNull().default(""), // document.referrer fallback when no UTM present
+  landingPath: text("landing_path").notNull().default(""),
   createdAt: text("created_at").notNull().default(sql`CURRENT_TIMESTAMP`),
 });
 

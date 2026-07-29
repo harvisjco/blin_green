@@ -1,7 +1,8 @@
 "use client";
 
-import { FormEvent, useMemo, useState } from "react";
+import { FormEvent, useEffect, useMemo, useState } from "react";
 import { submitConsultation } from "./actions";
+import { captureAttribution, readAttribution } from "./attribution";
 
 const projects = [
   { type: "거실", product: "쉬폰 커튼 · 우드 블라인드", tone: "project-one" },
@@ -91,12 +92,21 @@ export default function Home() {
   const consultationSummary = diagnosisComplete ? `진단 결과 · ${diagnosisAnswers.room} / ${diagnosisAnswers.priority} / ${diagnosisAnswers.mood}\n추천 제품 · ${diagnosisResults.map((product) => product.name).join(", ")}` : "제품 진단 전 · 상담을 통해 공간에 맞는 제품을 함께 추천받고 싶어요.";
   function chooseDiagnosis(option: string) { const question = diagnosisQuestions[diagnosisStep]; setDiagnosisAnswers((current) => ({ ...current, [question.key]: option })); setDiagnosisStep((current) => current + 1); }
 
+  useEffect(() => { captureAttribution(); }, []);
+
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const form = event.currentTarget;
     setSubmitting(true);
     setSubmitError(null);
-    const result = await submitConsultation(new FormData(form));
+    const attribution = readAttribution();
+    const formData = new FormData(form);
+    formData.set("utmSource", attribution.utmSource);
+    formData.set("utmMedium", attribution.utmMedium);
+    formData.set("utmCampaign", attribution.utmCampaign);
+    formData.set("referrer", attribution.referrer);
+    formData.set("landingPath", attribution.landingPath);
+    const result = await submitConsultation(formData);
     setSubmitting(false);
     if (result.ok) {
       setSubmitted(true);
