@@ -1,6 +1,7 @@
 "use client";
 
 import { FormEvent, useMemo, useState } from "react";
+import { submitConsultation } from "./actions";
 
 const projects = [
   { type: "거실", product: "쉬폰 커튼 · 우드 블라인드", tone: "project-one" },
@@ -74,6 +75,8 @@ const guideProducts = [
 export default function Home() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [submitted, setSubmitted] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
   const [selectedNeed, setSelectedNeed] = useState<Need | "전체">("전체");
   const [selectedProduct, setSelectedProduct] = useState(guideProducts[3].id);
@@ -88,9 +91,19 @@ export default function Home() {
   const consultationSummary = diagnosisComplete ? `진단 결과 · ${diagnosisAnswers.room} / ${diagnosisAnswers.priority} / ${diagnosisAnswers.mood}\n추천 제품 · ${diagnosisResults.map((product) => product.name).join(", ")}` : "제품 진단 전 · 상담을 통해 공간에 맞는 제품을 함께 추천받고 싶어요.";
   function chooseDiagnosis(option: string) { const question = diagnosisQuestions[diagnosisStep]; setDiagnosisAnswers((current) => ({ ...current, [question.key]: option })); setDiagnosisStep((current) => current + 1); }
 
-  function handleSubmit(event: FormEvent<HTMLFormElement>) {
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    setSubmitted(true);
+    const form = event.currentTarget;
+    setSubmitting(true);
+    setSubmitError(null);
+    const result = await submitConsultation(new FormData(form));
+    setSubmitting(false);
+    if (result.ok) {
+      setSubmitted(true);
+      form.reset();
+    } else {
+      setSubmitError(result.error);
+    }
   }
   async function copyConsultation() { try { await navigator.clipboard.writeText(consultationSummary); setCopied(true); } catch { setCopied(false); } }
 
@@ -252,8 +265,9 @@ export default function Home() {
           <label>관심 제품 · 진단 결과<textarea name="message" rows={4} value={consultationSummary} onChange={() => {}} aria-label="관심 제품 및 진단 결과" /></label>
           <label>추가로 알려주실 내용<textarea name="detail" rows={3} placeholder="창 사진 보유 여부, 희망 시기, 기존 설치물·철거 여부 등을 적어 주세요" /></label>
           <label className="consent"><input type="checkbox" required /><span>상담을 위한 개인정보 수집 및 이용에 동의합니다.</span></label>
-          <button className="submit-button" type="submit">방문상담 신청하기 <span>↗</span></button>
-          {submitted && <p className="form-message" role="status">신청 정보가 정리됐어요. 현재는 접수 채널 연결 전이므로 <button type="button" className="inline-copy" onClick={copyConsultation}>진단 결과를 복사</button>해 전화 상담 시 전달해 주세요.</p>}
+          <button className="submit-button" type="submit" disabled={submitting}>{submitting ? "접수 중..." : "방문상담 신청하기"} <span>↗</span></button>
+          {submitted && <p className="form-message" role="status">신청이 정상 접수됐어요. 빠르게 연락드릴게요. 급하시면 <a href="tel:01049518294">전화 상담</a>도 가능합니다.</p>}
+          {submitError && <p className="form-message form-error" role="alert">{submitError} <button type="button" className="inline-copy" onClick={copyConsultation}>진단 결과를 복사</button>해 전화 상담 시 전달해 주세요.</p>}
         </form>
       </section>
 
