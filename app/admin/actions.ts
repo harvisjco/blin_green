@@ -31,6 +31,7 @@ export async function createManualInquiry(formData: FormData): Promise<ActionRes
   const area = String(formData.get("area") ?? "").trim();
   const interest = String(formData.get("interest") ?? "").trim();
   const confirmDuplicate = String(formData.get("confirmDuplicate") ?? "") === "1";
+  const referredByCustomerId = Number(formData.get("referredByCustomerId")) || null;
 
   if (!name || !phone) return { ok: false, error: "성함과 연락처를 입력해 주세요." };
 
@@ -81,7 +82,7 @@ export async function createManualInquiry(formData: FormData): Promise<ActionRes
 
     const customerId = existingCustomer
       ? existingCustomer.id
-      : (await db.insert(customers).values({ name, phone, area }).returning())[0].id;
+      : (await db.insert(customers).values({ name, phone, area, referredByCustomerId }).returning())[0].id;
 
     const [inquiry] = await db
       .insert(inquiries)
@@ -105,7 +106,11 @@ export async function updateInquiryStatus(inquiryId: number, status: InquiryStat
 
     await db
       .update(inquiries)
-      .set({ status, updatedAt: new Date().toISOString() })
+      .set({
+        status,
+        updatedAt: new Date().toISOString(),
+        completedAt: status === "completed" ? new Date().toISOString() : null,
+      })
       .where(eq(inquiries.id, inquiryId));
 
     if (current.status !== status) {
@@ -114,6 +119,7 @@ export async function updateInquiryStatus(inquiryId: number, status: InquiryStat
 
     revalidatePath(`/admin/${inquiryId}`);
     revalidatePath("/admin");
+    revalidatePath("/admin/remarketing");
     return { ok: true };
   } catch {
     return { ok: false, error: "상태 변경에 실패했습니다." };

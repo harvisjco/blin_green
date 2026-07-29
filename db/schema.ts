@@ -26,6 +26,7 @@ export const customers = sqliteTable("customers", {
   phone: text("phone").notNull().unique(),
   area: text("area").notNull().default(""),
   memo: text("memo").notNull().default(""),
+  referredByCustomerId: integer("referred_by_customer_id"), // self-reference: which existing customer sent them
   createdAt: text("created_at").notNull().default(sql`CURRENT_TIMESTAMP`),
 });
 

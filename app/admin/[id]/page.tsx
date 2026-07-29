@@ -108,7 +108,10 @@ export default async function AdminInquiryDetailPage({
             </select>
             <button type="submit">상태 변경</button>
           </FormToast>
-          <p className="admin-meta">최초 접수 {formatDate(inquiry.createdAt)} · 최근 수정 {formatDate(inquiry.updatedAt)}</p>
+          <p className="admin-meta">
+            최초 접수 {formatDate(inquiry.createdAt)} · 최근 수정 {formatDate(inquiry.updatedAt)}
+            {inquiry.completedAt && <> · 시공 완료 {formatDate(inquiry.completedAt)}</>}
+          </p>
           {statusHistory.length > 0 && (
             <ul className="admin-status-history">
               {statusHistory.map((event) => (

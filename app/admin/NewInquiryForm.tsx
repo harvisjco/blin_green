@@ -5,7 +5,13 @@ import type { ActionResult } from "./actions";
 
 const idle: ActionResult = { ok: true };
 
-export function NewInquiryForm({ action }: { action: (formData: FormData) => Promise<ActionResult> }) {
+export function NewInquiryForm({
+  action,
+  referrerOptions,
+}: {
+  action: (formData: FormData) => Promise<ActionResult>;
+  referrerOptions?: { id: number; name: string; phone: string }[];
+}) {
   const formRef = useRef<HTMLFormElement>(null);
   const [state, formAction, pending] = useActionState(async (_prev: ActionResult, formData: FormData) => {
     return action(formData);
@@ -35,6 +41,14 @@ export function NewInquiryForm({ action }: { action: (formData: FormData) => Pro
       <input name="phone" placeholder="연락처" required />
       <input name="area" placeholder="지역" />
       <input name="interest" placeholder="관심 제품 / 메모" />
+      {referrerOptions && referrerOptions.length > 0 && (
+        <select name="referredByCustomerId" defaultValue="">
+          <option value="">소개자 없음</option>
+          {referrerOptions.map((c) => (
+            <option key={c.id} value={c.id}>{c.name} ({c.phone.slice(-4)})</option>
+          ))}
+        </select>
+      )}
       <input type="hidden" name="confirmDuplicate" value={duplicateWarning ? "1" : "0"} />
       <button type="submit">{duplicateWarning ? "그래도 등록" : "등록"}</button>
       {toast && <span className={`admin-toast ${toast.ok ? "ok" : "error"}`}>{toast.message}</span>}

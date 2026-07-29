@@ -74,6 +74,12 @@ export default async function AdminPage({
   const cost = allItems.reduce((acc, item) => acc + itemCost(item.widthCm, item.heightCm, item.quantity, item.unitCost), 0);
   const margin = revenue - cost;
 
+  const referrerOptions = await db
+    .select({ id: customers.id, name: customers.name, phone: customers.phone })
+    .from(customers)
+    .orderBy(desc(customers.createdAt))
+    .limit(100);
+
   return (
     <main className="admin">
       <header className="admin-header">
@@ -97,7 +103,7 @@ export default async function AdminPage({
 
       <section className="admin-card">
         <h2>새 문의 직접 등록</h2>
-        <NewInquiryForm action={createManualInquiry} />
+        <NewInquiryForm action={createManualInquiry} referrerOptions={referrerOptions} />
       </section>
 
       <section className="admin-card">
