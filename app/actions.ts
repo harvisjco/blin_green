@@ -1,7 +1,8 @@
 "use server";
 
+import { eq } from "drizzle-orm";
 import { getDb } from "../db";
-import { consultations } from "../db/schema";
+import { consultations, customers, inquiries } from "../db/schema";
 
 export type SubmitConsultationResult =
   | { ok: true }
@@ -23,7 +24,29 @@ export async function submitConsultation(
 
   try {
     const db = getDb();
-    await db.insert(consultations).values({ name, phone, area, method, message, detail });
+    const [consultation] = await db
+      .insert(consultations)
+      .values({ name, phone, area, method, message, detail })
+      .returning();
+
+    const [existingCustomer] = await db
+      .select()
+      .from(customers)
+      .where(eq(customers.phone, phone))
+      .limit(1);
+
+    const customerId = existingCustomer
+      ? existingCustomer.id
+      : (await db.insert(customers).values({ name, phone, area }).returning())[0].id;
+
+    await db.insert(inquiries).values({
+      customerId,
+      consultationId: consultation.id,
+      source: "website",
+      interest: message,
+      quoteNote: detail,
+    });
+
     return { ok: true };
   } catch {
     return { ok: false, error: "신청 접수 중 문제가 발생했어요. 전화로 문의해 주세요." };

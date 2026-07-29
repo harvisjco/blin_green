@@ -53,6 +53,49 @@ footer { padding:45px clamp(24px,5vw,78px) 68px; background:#f3f0e8; display:gri
 /* Consultation handoff from the style finder */
 .consultation-summary { margin-top:32px; padding:22px; border:1px solid rgba(202,220,212,.36); background:rgba(255,255,255,.06); }.consultation-summary>span { display:block; color:#9dbab0; font-size:11px; font-weight:800; letter-spacing:.1em; }.consultation-summary strong { display:block; margin-top:11px; font-size:20px; }.consultation-summary p { margin:8px 0 16px; color:#d6e0db; font-size:14px; line-height:1.55; }.consultation-summary button { padding:0; border:0; border-bottom:1px solid #c6d4ce; color:#f8f5ed; background:none; font:inherit; font-size:13px; font-weight:800; cursor:pointer; }.consultation-summary button b { margin-left:9px; }.reservation-form textarea[name="message"] { min-height:102px; color:#dce8e2; line-height:1.6; }.inline-copy { padding:0; border:0; color:inherit; background:none; font:inherit; text-decoration:underline; cursor:pointer; }
 
+/* Admin console */
+.admin { max-width:1180px; margin:0 auto; padding:36px 24px 90px; font-size:14px; }
+.admin-header { margin-bottom:24px; }
+.admin-header h1 { margin:0 0 6px; font-size:26px; letter-spacing:-.03em; }
+.admin-header p { margin:0; color:#5c6a65; font-size:13px; }
+.admin-back { display:inline-block; margin-bottom:18px; color:var(--green); font-weight:700; text-decoration:none; font-size:13px; }
+.admin-summary { display:grid; grid-template-columns:repeat(3,1fr); gap:16px; }
+.admin-summary div { display:flex; flex-direction:column; gap:6px; }
+.admin-summary span { color:#8a948f; font-size:12px; }
+.admin-summary strong { font-size:20px; letter-spacing:-.02em; }
+.admin-link-button { padding:0; border:0; background:none; color:#a3372f; font:inherit; font-size:12px; font-weight:700; text-decoration:underline; cursor:pointer; }
+.admin-total-row td { font-weight:800; background:#f6f4ee; }
+.admin-card { margin-bottom:20px; padding:20px 22px; background:#fff; border:1px solid var(--line); border-radius:10px; }
+.admin-card h2 { margin:0 0 14px; font-size:15px; letter-spacing:-.02em; }
+.admin-grid { display:grid; grid-template-columns:repeat(2,1fr); gap:20px; }
+.admin-form-row { display:flex; flex-wrap:wrap; gap:10px; align-items:center; }
+.admin-form-row input, .admin-form-row select { flex:1 1 140px; padding:9px 11px; border:1px solid var(--line); border-radius:6px; font:inherit; font-size:13px; }
+.admin-form-row button { padding:9px 16px; border:0; border-radius:6px; background:var(--green); color:#fff; font-weight:700; font-size:13px; cursor:pointer; }
+.admin-form-col { display:flex; flex-direction:column; gap:10px; }
+.admin-form-col label { display:flex; flex-direction:column; gap:6px; font-size:12px; color:#5c6a65; }
+.admin-form-col input, .admin-form-col textarea { padding:9px 11px; border:1px solid var(--line); border-radius:6px; font:inherit; font-size:13px; resize:vertical; }
+.admin-form-col button { align-self:flex-start; padding:9px 18px; border:0; border-radius:6px; background:var(--green); color:#fff; font-weight:700; font-size:13px; cursor:pointer; }
+.admin-meta { margin:12px 0 0; color:#8a948f; font-size:12px; }
+.admin-detail-text { margin:0; line-height:1.7; font-size:13px; }
+.admin-table { width:100%; border-collapse:collapse; background:#fff; border:1px solid var(--line); border-radius:10px; overflow:hidden; font-size:13px; }
+.admin-table th, .admin-table td { padding:11px 12px; border-bottom:1px solid var(--line); text-align:left; white-space:nowrap; }
+.admin-table th { background:#f6f4ee; font-size:11px; letter-spacing:.04em; color:#5c6a65; }
+.admin-table td.admin-truncate { max-width:220px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.admin-table a { color:var(--green); font-weight:700; text-decoration:none; }
+.admin-empty { text-align:center; color:#8a948f; padding:28px 0!important; white-space:normal!important; }
+.admin-badge { display:inline-block; padding:4px 9px; border-radius:20px; font-size:11px; font-weight:700; background:#eef1ee; color:#5c6a65; }
+.admin-badge.status-new { background:#eaf1fb; color:#2a5b9c; }
+.admin-badge.status-consulting { background:#fef4e0; color:#a06a0c; }
+.admin-badge.status-quoted { background:#eef1ee; color:#3b6b5c; }
+.admin-badge.status-scheduled { background:#e6f2ee; color:#1d5e58; }
+.admin-badge.status-completed { background:#e9e9e9; color:#4a4a4a; }
+.admin-badge.status-cancelled { background:#fbe9e9; color:#a3372f; }
+.admin-notes { list-style:none; margin:16px 0 0; padding:0; display:flex; flex-direction:column; gap:12px; }
+.admin-notes li { padding:12px 14px; background:#f8f7f3; border-radius:8px; }
+.admin-note-meta { display:flex; justify-content:space-between; font-size:12px; color:#5c6a65; margin-bottom:6px; }
+.admin-notes p { margin:0; font-size:13px; line-height:1.6; white-space:pre-wrap; }
+@media (max-width:760px) { .admin-grid { grid-template-columns:1fr; } .admin-table { display:block; overflow-x:auto; } }
+
 /* Photo-ready consultation and FAQ */
 .photo-guide { background:#dfe7e1; }.photo-heading>p,.faq-heading>p { max-width:400px; margin:0; color:#52615b; font-size:16px; line-height:1.75; }.photo-steps { display:grid; grid-template-columns:repeat(3,1fr); gap:1px; margin-top:54px; background:rgba(29,94,88,.24); border:1px solid rgba(29,94,88,.24); }.photo-steps article { min-height:232px; padding:29px; background:#edf1ed; }.photo-steps span { color:var(--green); font-size:12px; font-weight:800; letter-spacing:.1em; }.photo-steps h3 { margin:52px 0 11px; font-size:25px; letter-spacing:-.065em; }.photo-steps p { margin:0; color:#4d5c56; font-size:15px; line-height:1.7; }.photo-helper { display:grid; grid-template-columns:1.1fr .75fr .9fr; gap:26px; align-items:end; margin-top:28px; padding:clamp(25px,4vw,48px); color:#f8f6ee; background:var(--green); }.photo-helper .section-kicker { color:#b9d0c5; }.photo-helper h3 { margin:0 0 14px; font-size:clamp(26px,2.6vw,37px); letter-spacing:-.07em; line-height:1.2; }.photo-helper p:not(.section-kicker) { margin:0; color:#d7e3dc; font-size:14px; line-height:1.7; }.photo-picker { display:flex; min-height:152px; flex-direction:column; justify-content:space-between; padding:22px; border:1px solid rgba(255,255,255,.45); cursor:pointer; }.photo-picker span { color:#c6d8d0; font-size:12px; font-weight:800; letter-spacing:.08em; }.photo-picker input { position:absolute; width:1px; height:1px; overflow:hidden; opacity:0; }.photo-picker b { font-size:16px; }.photo-status { min-height:152px; padding:22px; background:#f8f6ee; color:var(--ink); }.photo-status strong { display:block; color:var(--green); font-size:16px; }.photo-status p { margin:13px 0 0!important; color:#54635d!important; font-size:13px!important; line-height:1.65!important; word-break:break-all; }.faq { background:#f8f6ef; }.faq-list { margin-top:54px; border-top:1px solid var(--line); }.faq-item { border-bottom:1px solid var(--line); }.faq-item button { display:grid; width:100%; grid-template-columns:68px 1fr 30px; gap:10px; align-items:center; padding:24px 0; border:0; color:var(--ink); background:none; text-align:left; font:inherit; cursor:pointer; }.faq-item button>span { color:var(--green); font-size:12px; font-weight:800; letter-spacing:.08em; }.faq-item button strong { font-size:19px; letter-spacing:-.05em; }.faq-item button>b { font-size:25px; font-weight:400; text-align:right; }.faq-item p { max-width:790px; margin:0 0 26px 78px; color:#53615c; font-size:15px; line-height:1.75; }.faq-item.open button strong { color:var(--green); }
 @media (max-width:760px) { .photo-heading>p,.faq-heading>p { font-size:15px; }.photo-steps { grid-template-columns:1fr; margin-top:35px; }.photo-steps article { min-height:0; padding:23px; }.photo-steps h3 { margin-top:28px; font-size:22px; }.photo-helper { grid-template-columns:1fr; gap:14px; margin-top:14px; padding:24px; }.photo-picker,.photo-status { min-height:124px; }.faq-list { margin-top:34px; }.faq-item button { grid-template-columns:43px 1fr 22px; padding:20px 0; }.faq-item button strong { font-size:16px; }.faq-item p { margin:0 0 22px 43px; font-size:14px; }.faq-item button>b { font-size:21px; } }
