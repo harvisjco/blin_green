@@ -166,9 +166,9 @@ export default function Home() {
       <section className="social section" aria-labelledby="social-title">
         <div className="section-heading social-heading">
           <div><p className="section-kicker">FOLLOW BLINGREEN</p><h2 id="social-title">사진으로 보고,<br />영상으로 더 생생하게</h2></div>
-          <p>블린그린의 실제 시공 분위기와 공간별 아이디어를<br />인스타그램과 유튜브에서 만나보세요.</p>
+          <p>블린그린의 실제 시공 분위기와 공간별 아이디어를<br />인스타그램·유튜브·블로그에서 만나보세요.</p>
         </div>
-        <div className="social-grid">
+        <div className="social-grid social-grid-three">
           <a className="social-card social-instagram" href="https://www.instagram.com/blin_green/" target="_blank" rel="noreferrer" aria-label="블린그린 인스타그램 열기">
             <div className="social-photo"><span className="social-icon instagram-icon" aria-hidden="true" /></div>
             <div className="social-content"><div><p>INSTAGRAM</p><h3>@blin_green</h3></div><span className="social-arrow">↗</span></div>
@@ -178,6 +178,11 @@ export default function Home() {
             <div className="social-photo"><span className="social-icon youtube-icon" aria-hidden="true" /><span className="play-button" aria-hidden="true">▶</span></div>
             <div className="social-content"><div><p>YOUTUBE</p><h3>블린그린</h3></div><span className="social-arrow">↗</span></div>
             <p className="social-description">커튼과 블라인드가 완성되는 모습을 영상으로 보세요.</p>
+          </a>
+          <a className="social-card social-naver" href="https://m.blog.naver.com/PostList.naver?blogId=blingreen&tab=1" target="_blank" rel="noreferrer" aria-label="블린그린 네이버 블로그 열기">
+            <div className="social-photo"><span className="social-icon naver-icon" aria-hidden="true">N</span></div>
+            <div className="social-content"><div><p>BLOG</p><h3>블린그린</h3></div><span className="social-arrow">↗</span></div>
+            <p className="social-description">시공 후기와 공간별 이야기를 블로그에서 자세히 보세요.</p>
           </a>
         </div>
       </section>
@@ -271,7 +276,7 @@ export default function Home() {
         </form>
       </section>
 
-      <footer><a className="wordmark" href="#top">블린그린</a><p>김포 · 인천 커튼 &amp; 블라인드 맞춤 시공</p><div className="footer-social"><a href="https://www.instagram.com/blin_green/" target="_blank" rel="noreferrer">INSTAGRAM ↗</a><a href="https://www.youtube.com/@블린그린-blingreen" target="_blank" rel="noreferrer">YOUTUBE ↗</a></div><small>이미지 출처 : 창안애</small><small>사업자 정보 및 카카오톡 채널은 공식 확인 후 반영 예정입니다.</small></footer>
+      <footer><a className="wordmark" href="#top">블린그린</a><p>김포 · 인천 커튼 &amp; 블라인드 맞춤 시공</p><div className="footer-social"><a href="https://www.instagram.com/blin_green/" target="_blank" rel="noreferrer">INSTAGRAM ↗</a><a href="https://www.youtube.com/@블린그린-blingreen" target="_blank" rel="noreferrer">YOUTUBE ↗</a><a href="https://m.blog.naver.com/PostList.naver?blogId=blingreen&tab=1" target="_blank" rel="noreferrer">BLOG ↗</a></div><small>이미지 출처 : 창안애</small><small>사업자 정보 및 카카오톡 채널은 공식 확인 후 반영 예정입니다.</small></footer>
       <div className="mobile-actions"><a href="tel:01049518294">전화 상담</a><a href="#reservation">무료 방문상담</a></div>
     </main>
   );
