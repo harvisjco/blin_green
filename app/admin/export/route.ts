@@ -37,6 +37,7 @@ export async function GET(request: Request) {
       quoteAmount: inquiries.quoteAmount,
       quoteNote: inquiries.quoteNote,
       scheduledAt: inquiries.scheduledAt,
+      completedAt: inquiries.completedAt,
       createdAt: inquiries.createdAt,
       customerName: customers.name,
       customerPhone: customers.phone,
@@ -50,7 +51,7 @@ export async function GET(request: Request) {
     rows = rows.filter((row) => row.status === statusFilter);
   }
 
-  const header = ["접수일", "고객명", "연락처", "지역", "관심/내용", "경로", "상태", "견적금액", "견적메모", "시공일"];
+  const header = ["접수일", "고객명", "연락처", "지역", "관심/내용", "경로", "상태", "견적금액", "견적메모", "시공예정일", "시공완료일"];
   const lines = [header.join(",")];
 
   for (const row of rows) {
@@ -66,6 +67,7 @@ export async function GET(request: Request) {
         row.quoteAmount ?? "",
         row.quoteNote,
         formatDate(row.scheduledAt),
+        formatDate(row.completedAt),
       ]
         .map((v) => csvEscape(String(v ?? "")))
         .join(","),
