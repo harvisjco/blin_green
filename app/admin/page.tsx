@@ -57,7 +57,7 @@ export default async function AdminPage() {
       <header className="admin-header">
         <h1>블린그린 고객 관리</h1>
         <p>총 {rows.length}건 · {Object.entries(counts).map(([status, count]) => `${STATUS_LABEL[status] ?? status} ${count}`).join(" · ")}</p>
-        <p><Link href="/admin/products">제품 · 단가 관리 →</Link></p>
+        <p><Link href="/admin/calendar">시공 일정 달력 →</Link> · <Link href="/admin/products">제품 · 단가 관리 →</Link></p>
       </header>
 
       <section className="admin-card admin-summary">
