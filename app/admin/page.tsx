@@ -3,6 +3,7 @@ import Link from "next/link";
 import { getDb } from "../../db";
 import { customers, inquiries, inquiryItems } from "../../db/schema";
 import { createManualInquiry } from "./actions";
+import { FormToast } from "./FormToast";
 import { itemAmount, itemCost } from "./pricing";
 
 export const dynamic = "force-dynamic";
@@ -16,9 +17,19 @@ const STATUS_LABEL: Record<string, string> = {
   cancelled: "취소",
 };
 
-export default async function AdminPage() {
+const STATUS_ORDER = ["new", "consulting", "quoted", "scheduled", "completed", "cancelled"] as const;
+
+export default async function AdminPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ q?: string; status?: string }>;
+}) {
+  const params = await searchParams;
+  const query = (params.q ?? "").trim();
+  const statusFilter = params.status ?? "";
+
   const db = getDb();
-  const rows = await db
+  const allRows = await db
     .select({
       id: inquiries.id,
       status: inquiries.status,
@@ -35,12 +46,22 @@ export default async function AdminPage() {
     .innerJoin(customers, eq(inquiries.customerId, customers.id))
     .orderBy(desc(inquiries.createdAt));
 
-  const counts = rows.reduce<Record<string, number>>((acc, row) => {
+  const counts = allRows.reduce<Record<string, number>>((acc, row) => {
     acc[row.status] = (acc[row.status] ?? 0) + 1;
     return acc;
   }, {});
 
-  const activeInquiryIds = rows
+  const needsAttention = allRows.filter((row) => row.status === "new" || row.status === "consulting").length;
+
+  const normalizedQuery = query.replace(/[^0-9a-zA-Z가-힣]/g, "").toLowerCase();
+  const rows = allRows.filter((row) => {
+    if (statusFilter && row.status !== statusFilter) return false;
+    if (!normalizedQuery) return true;
+    const haystack = `${row.customerName}${row.customerPhone}${row.customerArea}`.replace(/[^0-9a-zA-Z가-힣]/g, "").toLowerCase();
+    return haystack.includes(normalizedQuery);
+  });
+
+  const activeInquiryIds = allRows
     .filter((row) => row.status === "scheduled" || row.status === "completed")
     .map((row) => row.id);
 
@@ -56,9 +77,17 @@ export default async function AdminPage() {
     <main className="admin">
       <header className="admin-header">
         <h1>블린그린 고객 관리</h1>
-        <p>총 {rows.length}건 · {Object.entries(counts).map(([status, count]) => `${STATUS_LABEL[status] ?? status} ${count}`).join(" · ")}</p>
+        <p>총 {allRows.length}건 · {Object.entries(counts).map(([status, count]) => `${STATUS_LABEL[status] ?? status} ${count}`).join(" · ")}</p>
         <p><Link href="/admin/calendar">시공 일정 달력 →</Link> · <Link href="/admin/products">제품 · 단가 관리 →</Link></p>
       </header>
+
+      {needsAttention > 0 && (
+        <section className="admin-card admin-alert">
+          <span>처리 필요</span>
+          <strong>신규+상담중 {needsAttention}건이 대기 중입니다.</strong>
+          <Link href="/admin?status=new">신규 문의 보기 →</Link>
+        </section>
+      )}
 
       <section className="admin-card admin-summary">
         <div><span>시공예정+완료 매출</span><strong>{revenue.toLocaleString()}원</strong></div>
@@ -68,12 +97,26 @@ export default async function AdminPage() {
 
       <section className="admin-card">
         <h2>새 문의 직접 등록</h2>
-        <form action={createManualInquiry} className="admin-form-row">
+        <FormToast action={createManualInquiry} className="admin-form-row" successMessage="문의를 등록했습니다." resetOnSuccess>
           <input name="name" placeholder="성함" required />
           <input name="phone" placeholder="연락처" required />
           <input name="area" placeholder="지역" />
           <input name="interest" placeholder="관심 제품 / 메모" />
           <button type="submit">등록</button>
+        </FormToast>
+      </section>
+
+      <section className="admin-card">
+        <form className="admin-filter-bar" method="get">
+          <input type="search" name="q" defaultValue={query} placeholder="이름·전화번호·지역 검색" />
+          <select name="status" defaultValue={statusFilter}>
+            <option value="">전체 상태</option>
+            {STATUS_ORDER.map((s) => (
+              <option key={s} value={s}>{STATUS_LABEL[s]} ({counts[s] ?? 0})</option>
+            ))}
+          </select>
+          <button type="submit">검색</button>
+          {(query || statusFilter) && <Link href="/admin" className="admin-filter-clear">필터 초기화</Link>}
         </form>
       </section>
 
@@ -108,7 +151,7 @@ export default async function AdminPage() {
             </tr>
           ))}
           {rows.length === 0 && (
-            <tr><td colSpan={10} className="admin-empty">등록된 문의가 없습니다.</td></tr>
+            <tr><td colSpan={10} className="admin-empty">{query || statusFilter ? "조건에 맞는 문의가 없습니다." : "등록된 문의가 없습니다."}</td></tr>
           )}
         </tbody>
       </table>

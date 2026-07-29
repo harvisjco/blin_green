@@ -2,20 +2,14 @@ import { desc } from "drizzle-orm";
 import Link from "next/link";
 import { getDb } from "../../../db";
 import { products } from "../../../db/schema";
-import { createProduct, toggleProductActive, updateProduct } from "../actions";
+import { createProduct, toggleProductActiveForm, updateProduct } from "../actions";
+import { FormToast } from "../FormToast";
 
 export const dynamic = "force-dynamic";
 
 export default async function AdminProductsPage() {
   const db = getDb();
   const rows = await db.select().from(products).orderBy(desc(products.createdAt));
-
-  async function toggleActive(formData: FormData) {
-    "use server";
-    const productId = Number(formData.get("productId"));
-    const nextActive = String(formData.get("nextActive")) === "1";
-    await toggleProductActive(productId, nextActive);
-  }
 
   return (
     <main className="admin">
@@ -28,7 +22,7 @@ export default async function AdminProductsPage() {
 
       <section className="admin-card">
         <h2>새 제품 등록</h2>
-        <form action={createProduct} className="admin-form-row">
+        <FormToast action={createProduct} className="admin-form-row" successMessage="제품을 등록했습니다." resetOnSuccess>
           <select name="family" defaultValue="커튼">
             <option value="커튼">커튼</option>
             <option value="블라인드">블라인드</option>
@@ -37,7 +31,7 @@ export default async function AdminProductsPage() {
           <input name="price" placeholder="판매가 (원/m²)" inputMode="numeric" required />
           <input name="cost" placeholder="원가 (원/m²)" inputMode="numeric" />
           <button type="submit">등록</button>
-        </form>
+        </FormToast>
       </section>
 
       <table className="admin-table">
@@ -62,17 +56,17 @@ export default async function AdminProductsPage() {
                 <td>{product.family}</td>
                 <td>{product.name}</td>
                 <td colSpan={2}>
-                  <form action={updateProduct} className="admin-form-row">
+                  <FormToast action={updateProduct} className="admin-form-row" successMessage="단가를 저장했습니다.">
                     <input type="hidden" name="productId" value={product.id} />
                     <input name="price" defaultValue={product.priceCents} inputMode="numeric" style={{ width: 100 }} />
                     <input name="cost" defaultValue={product.costCents} inputMode="numeric" style={{ width: 100 }} />
                     <button type="submit">저장</button>
-                  </form>
+                  </FormToast>
                 </td>
                 <td>{margin}%</td>
                 <td><span className={`admin-badge ${product.active ? "status-scheduled" : "status-cancelled"}`}>{product.active ? "판매중" : "중단"}</span></td>
                 <td>
-                  <form action={toggleActive}>
+                  <form action={toggleProductActiveForm}>
                     <input type="hidden" name="productId" value={product.id} />
                     <input type="hidden" name="nextActive" value={product.active ? "0" : "1"} />
                     <button type="submit" className="admin-link-button">{product.active ? "판매중지" : "재활성화"}</button>

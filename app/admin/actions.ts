@@ -9,6 +9,8 @@ import { itemAmount } from "./pricing";
 const STATUSES = ["new", "consulting", "quoted", "scheduled", "completed", "cancelled"] as const;
 export type InquiryStatus = (typeof STATUSES)[number];
 
+export type ActionResult = { ok: true } | { ok: false; error: string };
+
 async function recalculateQuoteAmount(db: ReturnType<typeof getDb>, inquiryId: number) {
   const items = await db.select().from(inquiryItems).where(eq(inquiryItems.inquiryId, inquiryId));
   const total = items.reduce(
@@ -21,172 +23,241 @@ async function recalculateQuoteAmount(db: ReturnType<typeof getDb>, inquiryId: n
     .where(eq(inquiries.id, inquiryId));
 }
 
-export async function createManualInquiry(formData: FormData) {
+export async function createManualInquiry(formData: FormData): Promise<ActionResult> {
   const name = String(formData.get("name") ?? "").trim();
   const phone = String(formData.get("phone") ?? "").trim();
   const area = String(formData.get("area") ?? "").trim();
   const interest = String(formData.get("interest") ?? "").trim();
 
-  if (!name || !phone) return;
+  if (!name || !phone) return { ok: false, error: "성함과 연락처를 입력해 주세요." };
 
-  const db = getDb();
-  const [existingCustomer] = await db
-    .select()
-    .from(customers)
-    .where(eq(customers.phone, phone))
-    .limit(1);
+  try {
+    const db = getDb();
+    const [existingCustomer] = await db
+      .select()
+      .from(customers)
+      .where(eq(customers.phone, phone))
+      .limit(1);
 
-  const customerId = existingCustomer
-    ? existingCustomer.id
-    : (await db.insert(customers).values({ name, phone, area }).returning())[0].id;
+    const customerId = existingCustomer
+      ? existingCustomer.id
+      : (await db.insert(customers).values({ name, phone, area }).returning())[0].id;
 
-  await db.insert(inquiries).values({ customerId, source: "manual", interest });
+    await db.insert(inquiries).values({ customerId, source: "manual", interest });
 
-  revalidatePath("/admin");
+    revalidatePath("/admin");
+    return { ok: true };
+  } catch {
+    return { ok: false, error: "등록에 실패했습니다. 다시 시도해 주세요." };
+  }
 }
 
-export async function updateInquiryStatus(inquiryId: number, status: InquiryStatus) {
-  if (!STATUSES.includes(status)) return;
-  const db = getDb();
-  await db
-    .update(inquiries)
-    .set({ status, updatedAt: new Date().toISOString() })
-    .where(eq(inquiries.id, inquiryId));
-  revalidatePath(`/admin/${inquiryId}`);
-  revalidatePath("/admin");
+export async function updateInquiryStatus(inquiryId: number, status: InquiryStatus): Promise<ActionResult> {
+  if (!STATUSES.includes(status)) return { ok: false, error: "잘못된 상태 값입니다." };
+  try {
+    const db = getDb();
+    await db
+      .update(inquiries)
+      .set({ status, updatedAt: new Date().toISOString() })
+      .where(eq(inquiries.id, inquiryId));
+    revalidatePath(`/admin/${inquiryId}`);
+    revalidatePath("/admin");
+    return { ok: true };
+  } catch {
+    return { ok: false, error: "상태 변경에 실패했습니다." };
+  }
 }
 
-export async function updateInquiryQuote(formData: FormData) {
+export async function updateInquiryStatusForm(formData: FormData): Promise<ActionResult> {
+  const inquiryId = Number(formData.get("inquiryId"));
+  const status = String(formData.get("status") ?? "") as InquiryStatus;
+  if (!inquiryId) return { ok: false, error: "잘못된 요청입니다." };
+  return updateInquiryStatus(inquiryId, status);
+}
+
+export async function updateInquiryQuote(formData: FormData): Promise<ActionResult> {
   const inquiryId = Number(formData.get("inquiryId"));
   const amountRaw = String(formData.get("quoteAmount") ?? "").trim();
   const quoteNote = String(formData.get("quoteNote") ?? "").trim();
-  if (!inquiryId) return;
+  if (!inquiryId) return { ok: false, error: "잘못된 요청입니다." };
 
   const quoteAmount = amountRaw ? Number(amountRaw.replace(/[^0-9]/g, "")) : null;
 
-  const db = getDb();
-  await db
-    .update(inquiries)
-    .set({ quoteAmount, quoteNote, updatedAt: new Date().toISOString() })
-    .where(eq(inquiries.id, inquiryId));
-  revalidatePath(`/admin/${inquiryId}`);
+  try {
+    const db = getDb();
+    await db
+      .update(inquiries)
+      .set({ quoteAmount, quoteNote, updatedAt: new Date().toISOString() })
+      .where(eq(inquiries.id, inquiryId));
+    revalidatePath(`/admin/${inquiryId}`);
+    return { ok: true };
+  } catch {
+    return { ok: false, error: "저장에 실패했습니다." };
+  }
 }
 
-export async function updateInquirySchedule(formData: FormData) {
+export async function updateInquirySchedule(formData: FormData): Promise<ActionResult> {
   const inquiryId = Number(formData.get("inquiryId"));
   const scheduledAt = String(formData.get("scheduledAt") ?? "").trim();
-  if (!inquiryId) return;
+  if (!inquiryId) return { ok: false, error: "잘못된 요청입니다." };
 
-  const db = getDb();
-  await db
-    .update(inquiries)
-    .set({ scheduledAt: scheduledAt || null, updatedAt: new Date().toISOString() })
-    .where(eq(inquiries.id, inquiryId));
-  revalidatePath(`/admin/${inquiryId}`);
-  revalidatePath("/admin");
+  try {
+    const db = getDb();
+    await db
+      .update(inquiries)
+      .set({ scheduledAt: scheduledAt || null, updatedAt: new Date().toISOString() })
+      .where(eq(inquiries.id, inquiryId));
+    revalidatePath(`/admin/${inquiryId}`);
+    revalidatePath("/admin");
+    return { ok: true };
+  } catch {
+    return { ok: false, error: "일정 저장에 실패했습니다." };
+  }
 }
 
-export async function addInquiryNote(formData: FormData) {
+export async function addInquiryNote(formData: FormData): Promise<ActionResult> {
   const inquiryId = Number(formData.get("inquiryId"));
   const author = String(formData.get("author") ?? "").trim();
   const content = String(formData.get("content") ?? "").trim();
-  if (!inquiryId || !content) return;
+  if (!inquiryId || !content) return { ok: false, error: "내용을 입력해 주세요." };
 
-  const db = getDb();
-  await db.insert(inquiryNotes).values({ inquiryId, author, content });
-  revalidatePath(`/admin/${inquiryId}`);
+  try {
+    const db = getDb();
+    await db.insert(inquiryNotes).values({ inquiryId, author, content });
+    revalidatePath(`/admin/${inquiryId}`);
+    return { ok: true };
+  } catch {
+    return { ok: false, error: "일지 추가에 실패했습니다." };
+  }
 }
 
-export async function updateCustomerMemo(formData: FormData) {
+export async function updateCustomerMemo(formData: FormData): Promise<ActionResult> {
   const customerId = Number(formData.get("customerId"));
   const memo = String(formData.get("memo") ?? "").trim();
-  if (!customerId) return;
+  if (!customerId) return { ok: false, error: "잘못된 요청입니다." };
 
-  const db = getDb();
-  await db.update(customers).set({ memo }).where(eq(customers.id, customerId));
-  revalidatePath("/admin");
+  try {
+    const db = getDb();
+    await db.update(customers).set({ memo }).where(eq(customers.id, customerId));
+    revalidatePath("/admin");
+    return { ok: true };
+  } catch {
+    return { ok: false, error: "메모 저장에 실패했습니다." };
+  }
 }
 
 // --- Product catalog ---
 
-export async function createProduct(formData: FormData) {
+export async function createProduct(formData: FormData): Promise<ActionResult> {
   const name = String(formData.get("name") ?? "").trim();
   const family = String(formData.get("family") ?? "커튼").trim();
   const price = Number(String(formData.get("price") ?? "").replace(/[^0-9]/g, ""));
   const cost = Number(String(formData.get("cost") ?? "").replace(/[^0-9]/g, "")) || 0;
-  if (!name || !price) return;
+  if (!name || !price) return { ok: false, error: "제품명과 판매가를 입력해 주세요." };
 
-  const db = getDb();
-  await db.insert(products).values({ name, family, priceCents: price, costCents: cost });
-  revalidatePath("/admin/products");
+  try {
+    const db = getDb();
+    await db.insert(products).values({ name, family, priceCents: price, costCents: cost });
+    revalidatePath("/admin/products");
+    return { ok: true };
+  } catch {
+    return { ok: false, error: "제품 등록에 실패했습니다." };
+  }
 }
 
-export async function updateProduct(formData: FormData) {
+export async function updateProduct(formData: FormData): Promise<ActionResult> {
   const productId = Number(formData.get("productId"));
   const price = Number(String(formData.get("price") ?? "").replace(/[^0-9]/g, ""));
   const cost = Number(String(formData.get("cost") ?? "").replace(/[^0-9]/g, "")) || 0;
-  if (!productId || !price) return;
+  if (!productId || !price) return { ok: false, error: "판매가를 입력해 주세요." };
 
-  const db = getDb();
-  await db.update(products).set({ priceCents: price, costCents: cost }).where(eq(products.id, productId));
-  revalidatePath("/admin/products");
+  try {
+    const db = getDb();
+    await db.update(products).set({ priceCents: price, costCents: cost }).where(eq(products.id, productId));
+    revalidatePath("/admin/products");
+    return { ok: true };
+  } catch {
+    return { ok: false, error: "저장에 실패했습니다." };
+  }
 }
 
-export async function toggleProductActive(productId: number, active: boolean) {
-  const db = getDb();
-  await db.update(products).set({ active: active ? 1 : 0 }).where(eq(products.id, productId));
-  revalidatePath("/admin/products");
+export async function toggleProductActive(productId: number, active: boolean): Promise<ActionResult> {
+  try {
+    const db = getDb();
+    await db.update(products).set({ active: active ? 1 : 0 }).where(eq(products.id, productId));
+    revalidatePath("/admin/products");
+    return { ok: true };
+  } catch {
+    return { ok: false, error: "상태 변경에 실패했습니다." };
+  }
+}
+
+export async function toggleProductActiveForm(formData: FormData): Promise<ActionResult> {
+  const productId = Number(formData.get("productId"));
+  const nextActive = String(formData.get("nextActive")) === "1";
+  if (!productId) return { ok: false, error: "잘못된 요청입니다." };
+  return toggleProductActive(productId, nextActive);
 }
 
 // --- Quote line items ---
 
-export async function addInquiryItem(formData: FormData) {
+export async function addInquiryItem(formData: FormData): Promise<ActionResult> {
   const inquiryId = Number(formData.get("inquiryId"));
   const productId = Number(formData.get("productId")) || null;
   const widthCm = Number(formData.get("widthCm"));
   const heightCm = Number(formData.get("heightCm"));
   const quantity = Number(formData.get("quantity")) || 1;
-  if (!inquiryId || !widthCm || !heightCm) return;
+  if (!inquiryId || !widthCm || !heightCm) return { ok: false, error: "폭과 높이를 입력해 주세요." };
 
-  const db = getDb();
-  let productName = String(formData.get("productName") ?? "").trim();
-  let unitPrice = 0;
-  let unitCost = 0;
+  try {
+    const db = getDb();
+    let productName = String(formData.get("productName") ?? "").trim();
+    let unitPrice = 0;
+    let unitCost = 0;
 
-  if (productId) {
-    const [product] = await db.select().from(products).where(eq(products.id, productId)).limit(1);
-    if (product) {
-      productName = product.name;
-      unitPrice = product.priceCents;
-      unitCost = product.costCents;
+    if (productId) {
+      const [product] = await db.select().from(products).where(eq(products.id, productId)).limit(1);
+      if (product) {
+        productName = product.name;
+        unitPrice = product.priceCents;
+        unitCost = product.costCents;
+      }
     }
+    if (!productName) return { ok: false, error: "제품을 선택하거나 이름을 입력해 주세요." };
+
+    await db.insert(inquiryItems).values({
+      inquiryId,
+      productId,
+      productName,
+      widthCm,
+      heightCm,
+      quantity,
+      unitPrice,
+      unitCost,
+    });
+
+    await recalculateQuoteAmount(db, inquiryId);
+    revalidatePath(`/admin/${inquiryId}`);
+    revalidatePath("/admin");
+    return { ok: true };
+  } catch {
+    return { ok: false, error: "품목 추가에 실패했습니다." };
   }
-  if (!productName) return;
-
-  await db.insert(inquiryItems).values({
-    inquiryId,
-    productId,
-    productName,
-    widthCm,
-    heightCm,
-    quantity,
-    unitPrice,
-    unitCost,
-  });
-
-  await recalculateQuoteAmount(db, inquiryId);
-  revalidatePath(`/admin/${inquiryId}`);
-  revalidatePath("/admin");
 }
 
-export async function removeInquiryItem(formData: FormData) {
+export async function removeInquiryItem(formData: FormData): Promise<ActionResult> {
   const itemId = Number(formData.get("itemId"));
   const inquiryId = Number(formData.get("inquiryId"));
-  if (!itemId || !inquiryId) return;
+  if (!itemId || !inquiryId) return { ok: false, error: "잘못된 요청입니다." };
 
-  const db = getDb();
-  await db.delete(inquiryItems).where(eq(inquiryItems.id, itemId));
-  await recalculateQuoteAmount(db, inquiryId);
-  revalidatePath(`/admin/${inquiryId}`);
-  revalidatePath("/admin");
+  try {
+    const db = getDb();
+    await db.delete(inquiryItems).where(eq(inquiryItems.id, itemId));
+    await recalculateQuoteAmount(db, inquiryId);
+    revalidatePath(`/admin/${inquiryId}`);
+    revalidatePath("/admin");
+    return { ok: true };
+  } catch {
+    return { ok: false, error: "삭제에 실패했습니다." };
+  }
 }

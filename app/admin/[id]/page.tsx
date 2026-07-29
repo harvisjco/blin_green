@@ -10,8 +10,10 @@ import {
   updateCustomerMemo,
   updateInquiryQuote,
   updateInquirySchedule,
-  updateInquiryStatus,
+  updateInquiryStatusForm,
 } from "../actions";
+import { ConfirmDeleteButton } from "../ConfirmDeleteButton";
+import { FormToast } from "../FormToast";
 import { itemAmount, itemCost } from "../pricing";
 
 export const dynamic = "force-dynamic";
@@ -68,11 +70,6 @@ export default async function AdminInquiryDetailPage({
   const totalMargin = totalAmount - totalCost;
   const marginRate = totalAmount > 0 ? Math.round((totalMargin / totalAmount) * 100) : 0;
 
-  async function setStatus(formData: FormData) {
-    "use server";
-    await updateInquiryStatus(inquiryId, String(formData.get("status")) as never);
-  }
-
   return (
     <main className="admin">
       <Link href="/admin" className="admin-back">← 목록으로</Link>
@@ -85,43 +82,44 @@ export default async function AdminInquiryDetailPage({
       <div className="admin-grid">
         <section className="admin-card">
           <h2>상태</h2>
-          <form action={setStatus} className="admin-form-row">
+          <FormToast action={updateInquiryStatusForm} className="admin-form-row" successMessage="상태를 변경했습니다.">
+            <input type="hidden" name="inquiryId" value={inquiryId} />
             <select name="status" defaultValue={inquiry.status}>
               {STATUSES.map((s) => <option key={s.value} value={s.value}>{s.label}</option>)}
             </select>
             <button type="submit">상태 변경</button>
-          </form>
+          </FormToast>
           <p className="admin-meta">최초 접수 {formatDate(inquiry.createdAt)} · 최근 수정 {formatDate(inquiry.updatedAt)}</p>
         </section>
 
         <section className="admin-card">
           <h2>견적 메모</h2>
-          <form action={updateInquiryQuote} className="admin-form-col">
+          <FormToast action={updateInquiryQuote} className="admin-form-col" successMessage="견적 메모를 저장했습니다.">
             <input type="hidden" name="inquiryId" value={inquiryId} />
             {items.length === 0 && (
               <label>수동 견적 금액(원)<input name="quoteAmount" defaultValue={inquiry.quoteAmount ?? ""} placeholder="품목을 등록하면 자동 계산됩니다" /></label>
             )}
             <label>견적 메모<textarea name="quoteNote" rows={3} defaultValue={inquiry.quoteNote} placeholder="구성, 원단, 슬랫 등" /></label>
             <button type="submit">메모 저장</button>
-          </form>
+          </FormToast>
         </section>
 
         <section className="admin-card">
           <h2>시공 일정</h2>
-          <form action={updateInquirySchedule} className="admin-form-row">
+          <FormToast action={updateInquirySchedule} className="admin-form-row" successMessage="시공 일정을 저장했습니다.">
             <input type="hidden" name="inquiryId" value={inquiryId} />
             <input type="datetime-local" name="scheduledAt" defaultValue={toLocalInput(inquiry.scheduledAt)} />
             <button type="submit">일정 저장</button>
-          </form>
+          </FormToast>
         </section>
 
         <section className="admin-card">
           <h2>고객 메모</h2>
-          <form action={updateCustomerMemo} className="admin-form-col">
+          <FormToast action={updateCustomerMemo} className="admin-form-col" successMessage="고객 메모를 저장했습니다.">
             <input type="hidden" name="customerId" value={customer?.id} />
             <textarea name="memo" rows={3} defaultValue={customer?.memo} placeholder="이 고객에 대한 공통 메모(재방문 여부, 선호 등)" />
             <button type="submit">메모 저장</button>
-          </form>
+          </FormToast>
         </section>
       </div>
 
@@ -132,7 +130,7 @@ export default async function AdminInquiryDetailPage({
 
       <section className="admin-card">
         <h2>견적 품목 · 수익 계산</h2>
-        <form action={addInquiryItem} className="admin-form-row">
+        <FormToast action={addInquiryItem} className="admin-form-row" successMessage="품목을 추가했습니다.">
           <input type="hidden" name="inquiryId" value={inquiryId} />
           <select name="productId">
             <option value="">직접 입력</option>
@@ -145,7 +143,7 @@ export default async function AdminInquiryDetailPage({
           <input name="heightCm" placeholder="높이(cm)" inputMode="numeric" required style={{ width: 80 }} />
           <input name="quantity" placeholder="수량" inputMode="numeric" defaultValue={1} style={{ width: 60 }} />
           <button type="submit">품목 추가</button>
-        </form>
+        </FormToast>
         <p className="admin-meta">카탈로그 제품을 선택하면 <Link href="/admin/products">등록된 단가</Link>가 자동 적용됩니다. 목록에 없는 제품은 &quot;직접 입력&quot;으로 이름만 남기고, 금액은 0원으로 기록되니 이후 <Link href="/admin/products">제품 관리</Link>에서 등록해 주세요.</p>
 
         <table className="admin-table" style={{ marginTop: 14 }}>
@@ -177,7 +175,7 @@ export default async function AdminInquiryDetailPage({
                     <form action={removeInquiryItem}>
                       <input type="hidden" name="itemId" value={item.id} />
                       <input type="hidden" name="inquiryId" value={inquiryId} />
-                      <button type="submit" className="admin-link-button">삭제</button>
+                      <ConfirmDeleteButton message={`"${item.productName}" 품목을 삭제하시겠습니까?`} />
                     </form>
                   </td>
                 </tr>
@@ -203,14 +201,14 @@ export default async function AdminInquiryDetailPage({
 
       <section className="admin-card">
         <h2>면담 일지</h2>
-        <form action={addInquiryNote} className="admin-form-col">
+        <FormToast action={addInquiryNote} className="admin-form-col" successMessage="면담 일지를 추가했습니다.">
           <input type="hidden" name="inquiryId" value={inquiryId} />
           <div className="admin-form-row">
             <input name="author" placeholder="작성자" />
           </div>
           <textarea name="content" rows={3} placeholder="상담/방문/통화 내용을 기록하세요" required />
           <button type="submit">일지 추가</button>
-        </form>
+        </FormToast>
         <ul className="admin-notes">
           {notes.map((note) => (
             <li key={note.id}>
