@@ -1,9 +1,9 @@
 "use server";
 
-import { eq } from "drizzle-orm";
+import { and, desc, eq, gte, ne } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { getDb } from "../../db";
-import { customers, inquiries, inquiryItems, inquiryNotes, products } from "../../db/schema";
+import { customers, inquiries, inquiryItems, inquiryNotes, inquiryStatusEvents, products } from "../../db/schema";
 import { itemAmount } from "./pricing";
 
 const STATUSES = ["new", "consulting", "quoted", "scheduled", "completed", "cancelled"] as const;
@@ -23,11 +23,14 @@ async function recalculateQuoteAmount(db: ReturnType<typeof getDb>, inquiryId: n
     .where(eq(inquiries.id, inquiryId));
 }
 
+const DUPLICATE_WINDOW_HOURS = 48;
+
 export async function createManualInquiry(formData: FormData): Promise<ActionResult> {
   const name = String(formData.get("name") ?? "").trim();
   const phone = String(formData.get("phone") ?? "").trim();
   const area = String(formData.get("area") ?? "").trim();
   const interest = String(formData.get("interest") ?? "").trim();
+  const confirmDuplicate = String(formData.get("confirmDuplicate") ?? "") === "1";
 
   if (!name || !phone) return { ok: false, error: "성함과 연락처를 입력해 주세요." };
 
@@ -39,11 +42,52 @@ export async function createManualInquiry(formData: FormData): Promise<ActionRes
       .where(eq(customers.phone, phone))
       .limit(1);
 
+    if (existingCustomer && !confirmDuplicate) {
+      const since = new Date(Date.now() - DUPLICATE_WINDOW_HOURS * 60 * 60 * 1000).toISOString();
+      const recentOpen = await db
+        .select({ id: inquiries.id, status: inquiries.status, createdAt: inquiries.createdAt })
+        .from(inquiries)
+        .where(
+          and(
+            eq(inquiries.customerId, existingCustomer.id),
+            ne(inquiries.status, "cancelled"),
+            ne(inquiries.status, "completed"),
+          ),
+        )
+        .orderBy(desc(inquiries.createdAt))
+        .limit(1);
+
+      if (recentOpen.length > 0) {
+        return {
+          ok: false,
+          error: `DUPLICATE:${existingCustomer.name}님은 이미 진행 중인 문의(#${recentOpen[0].id})가 있습니다. 그래도 새로 등록하려면 다시 눌러주세요.`,
+        };
+      }
+
+      const recentAny = await db
+        .select({ id: inquiries.id, createdAt: inquiries.createdAt })
+        .from(inquiries)
+        .where(and(eq(inquiries.customerId, existingCustomer.id), gte(inquiries.createdAt, since)))
+        .orderBy(desc(inquiries.createdAt))
+        .limit(1);
+
+      if (recentAny.length > 0) {
+        return {
+          ok: false,
+          error: `DUPLICATE:${existingCustomer.name}님은 최근 ${DUPLICATE_WINDOW_HOURS}시간 내 이미 문의(#${recentAny[0].id})를 등록했습니다. 그래도 새로 등록하려면 다시 눌러주세요.`,
+        };
+      }
+    }
+
     const customerId = existingCustomer
       ? existingCustomer.id
       : (await db.insert(customers).values({ name, phone, area }).returning())[0].id;
 
-    await db.insert(inquiries).values({ customerId, source: "manual", interest });
+    const [inquiry] = await db
+      .insert(inquiries)
+      .values({ customerId, source: "manual", interest })
+      .returning();
+    await db.insert(inquiryStatusEvents).values({ inquiryId: inquiry.id, fromStatus: null, toStatus: "new" });
 
     revalidatePath("/admin");
     return { ok: true };
@@ -56,10 +100,18 @@ export async function updateInquiryStatus(inquiryId: number, status: InquiryStat
   if (!STATUSES.includes(status)) return { ok: false, error: "잘못된 상태 값입니다." };
   try {
     const db = getDb();
+    const [current] = await db.select({ status: inquiries.status }).from(inquiries).where(eq(inquiries.id, inquiryId)).limit(1);
+    if (!current) return { ok: false, error: "문의를 찾을 수 없습니다." };
+
     await db
       .update(inquiries)
       .set({ status, updatedAt: new Date().toISOString() })
       .where(eq(inquiries.id, inquiryId));
+
+    if (current.status !== status) {
+      await db.insert(inquiryStatusEvents).values({ inquiryId, fromStatus: current.status, toStatus: status });
+    }
+
     revalidatePath(`/admin/${inquiryId}`);
     revalidatePath("/admin");
     return { ok: true };

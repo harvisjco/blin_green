@@ -2,7 +2,7 @@ import { desc, eq } from "drizzle-orm";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getDb } from "../../../db";
-import { customers, inquiries, inquiryItems, inquiryNotes, products } from "../../../db/schema";
+import { customers, inquiries, inquiryItems, inquiryNotes, inquiryStatusEvents, products } from "../../../db/schema";
 import {
   addInquiryItem,
   addInquiryNote,
@@ -26,6 +26,8 @@ const STATUSES = [
   { value: "completed", label: "완료" },
   { value: "cancelled", label: "취소" },
 ] as const;
+
+const STATUS_LABEL: Record<string, string> = Object.fromEntries(STATUSES.map((s) => [s.value, s.label]));
 
 export default async function AdminInquiryDetailPage({
   params,
@@ -52,6 +54,12 @@ export default async function AdminInquiryDetailPage({
     .from(inquiries)
     .where(eq(inquiries.customerId, inquiry.customerId));
 
+  const statusHistory = await db
+    .select()
+    .from(inquiryStatusEvents)
+    .where(eq(inquiryStatusEvents.inquiryId, inquiryId))
+    .orderBy(desc(inquiryStatusEvents.createdAt));
+
   const items = await db
     .select()
     .from(inquiryItems)
@@ -76,7 +84,17 @@ export default async function AdminInquiryDetailPage({
 
       <header className="admin-header">
         <h1>{customer?.name} 고객 상담 기록</h1>
-        <p>{customer?.phone} · {customer?.area || "지역 미입력"} · 이 고객의 문의 {otherInquiries.length}건</p>
+        <p>
+          {customer?.phone} · {customer?.area || "지역 미입력"} · 이 고객의 문의 {otherInquiries.length}건
+          {customer?.phone && (
+            <>
+              {" · "}
+              <a href={`tel:${customer.phone}`}>☎ 전화</a>
+              {" "}
+              <a href={`sms:${customer.phone}`}>✉ 문자</a>
+            </>
+          )}
+        </p>
       </header>
 
       <div className="admin-grid">
@@ -90,6 +108,16 @@ export default async function AdminInquiryDetailPage({
             <button type="submit">상태 변경</button>
           </FormToast>
           <p className="admin-meta">최초 접수 {formatDate(inquiry.createdAt)} · 최근 수정 {formatDate(inquiry.updatedAt)}</p>
+          {statusHistory.length > 0 && (
+            <ul className="admin-status-history">
+              {statusHistory.map((event) => (
+                <li key={event.id}>
+                  <span className="admin-meta">{formatDate(event.createdAt)}</span>
+                  <span>{event.fromStatus ? `${STATUS_LABEL[event.fromStatus] ?? event.fromStatus} → ` : "등록: "}{STATUS_LABEL[event.toStatus] ?? event.toStatus}</span>
+                </li>
+              ))}
+            </ul>
+          )}
         </section>
 
         <section className="admin-card">

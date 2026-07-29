@@ -3,8 +3,9 @@ import Link from "next/link";
 import { getDb } from "../../db";
 import { customers, inquiries, inquiryItems } from "../../db/schema";
 import { createManualInquiry } from "./actions";
-import { FormToast } from "./FormToast";
+import { NewInquiryForm } from "./NewInquiryForm";
 import { itemAmount, itemCost } from "./pricing";
+import { QuickActions } from "./QuickActions";
 
 export const dynamic = "force-dynamic";
 
@@ -97,13 +98,7 @@ export default async function AdminPage({
 
       <section className="admin-card">
         <h2>새 문의 직접 등록</h2>
-        <FormToast action={createManualInquiry} className="admin-form-row" successMessage="문의를 등록했습니다." resetOnSuccess>
-          <input name="name" placeholder="성함" required />
-          <input name="phone" placeholder="연락처" required />
-          <input name="area" placeholder="지역" />
-          <input name="interest" placeholder="관심 제품 / 메모" />
-          <button type="submit">등록</button>
-        </FormToast>
+        <NewInquiryForm action={createManualInquiry} />
       </section>
 
       <section className="admin-card">
@@ -117,10 +112,16 @@ export default async function AdminPage({
           </select>
           <button type="submit">검색</button>
           {(query || statusFilter) && <Link href="/admin" className="admin-filter-clear">필터 초기화</Link>}
+          <a
+            className="admin-filter-clear"
+            href={`/admin/export${statusFilter ? `?status=${statusFilter}` : ""}`}
+          >
+            CSV 내보내기 ↓
+          </a>
         </form>
       </section>
 
-      <table className="admin-table">
+      <table className="admin-table admin-table-desktop">
         <thead>
           <tr>
             <th>접수일</th>
@@ -147,7 +148,13 @@ export default async function AdminPage({
               <td><span className={`admin-badge status-${row.status}`}>{STATUS_LABEL[row.status] ?? row.status}</span></td>
               <td>{row.quoteAmount ? `${row.quoteAmount.toLocaleString()}원` : "-"}</td>
               <td>{row.scheduledAt ? formatDate(row.scheduledAt) : "-"}</td>
-              <td><Link href={`/admin/${row.id}`}>상세 →</Link></td>
+              <td>
+                <div className="admin-quick-actions">
+                  <a href={`tel:${row.customerPhone}`} title="전화">☎</a>
+                  <a href={`sms:${row.customerPhone}`} title="문자">✉</a>
+                  <Link href={`/admin/${row.id}`}>상세 →</Link>
+                </div>
+              </td>
             </tr>
           ))}
           {rows.length === 0 && (
@@ -155,6 +162,28 @@ export default async function AdminPage({
           )}
         </tbody>
       </table>
+
+      <div className="admin-card-list">
+        {rows.map((row) => (
+          <Link key={row.id} href={`/admin/${row.id}`} className="admin-mobile-card">
+            <div className="admin-mobile-card-top">
+              <strong>{row.customerName}</strong>
+              <span className={`admin-badge status-${row.status}`}>{STATUS_LABEL[row.status] ?? row.status}</span>
+            </div>
+            <p className="admin-mobile-card-meta">{row.customerPhone} · {row.customerArea || "지역 미입력"}</p>
+            <p className="admin-mobile-card-meta admin-truncate">{row.interest || "-"}</p>
+            <div className="admin-mobile-card-bottom">
+              <span>{formatDate(row.createdAt)}</span>
+              {row.quoteAmount && <span>{row.quoteAmount.toLocaleString()}원</span>}
+              {row.scheduledAt && <span>시공 {formatDate(row.scheduledAt)}</span>}
+            </div>
+            <QuickActions phone={row.customerPhone} />
+          </Link>
+        ))}
+        {rows.length === 0 && (
+          <p className="admin-empty">{query || statusFilter ? "조건에 맞는 문의가 없습니다." : "등록된 문의가 없습니다."}</p>
+        )}
+      </div>
     </main>
   );
 }

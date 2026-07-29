@@ -48,6 +48,15 @@ export const inquiryNotes = sqliteTable("inquiry_notes", {
   createdAt: text("created_at").notNull().default(sql`CURRENT_TIMESTAMP`),
 });
 
+// Append-only log of status transitions for an inquiry.
+export const inquiryStatusEvents = sqliteTable("inquiry_status_events", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  inquiryId: integer("inquiry_id").notNull().references(() => inquiries.id),
+  fromStatus: text("from_status"),
+  toStatus: text("to_status").notNull(),
+  createdAt: text("created_at").notNull().default(sql`CURRENT_TIMESTAMP`),
+});
+
 // Product catalog: curtain/blind items priced per square meter.
 export const products = sqliteTable("products", {
   id: integer("id").primaryKey({ autoIncrement: true }),
