@@ -12,6 +12,7 @@ import {
   updateInquirySchedule,
   updateInquiryStatusForm,
 } from "../actions";
+import { ActionForm } from "../ActionForm";
 import { ConfirmDeleteButton } from "../ConfirmDeleteButton";
 import { FormToast } from "../FormToast";
 import { itemAmount, itemCost } from "../pricing";
@@ -200,11 +201,11 @@ export default async function AdminInquiryDetailPage({
                   <td>{item.cost.toLocaleString()}원</td>
                   <td>{(item.amount - item.cost).toLocaleString()}원</td>
                   <td>
-                    <form action={removeInquiryItem}>
+                    <ActionForm action={removeInquiryItem}>
                       <input type="hidden" name="itemId" value={item.id} />
                       <input type="hidden" name="inquiryId" value={inquiryId} />
                       <ConfirmDeleteButton message={`"${item.productName}" 품목을 삭제하시겠습니까?`} />
-                    </form>
+                    </ActionForm>
                   </td>
                 </tr>
               );

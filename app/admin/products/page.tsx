@@ -1,6 +1,7 @@
 import { desc } from "drizzle-orm";
 import { getDb } from "../../../db";
 import { products } from "../../../db/schema";
+import { ActionForm } from "../ActionForm";
 import { createProduct, toggleProductActiveForm, updateProduct } from "../actions";
 import { FormToast } from "../FormToast";
 
@@ -63,11 +64,11 @@ export default async function AdminProductsPage() {
                 <td>{margin}%</td>
                 <td><span className={`admin-badge ${product.active ? "status-scheduled" : "status-cancelled"}`}>{product.active ? "판매중" : "중단"}</span></td>
                 <td>
-                  <form action={toggleProductActiveForm}>
+                  <ActionForm action={toggleProductActiveForm}>
                     <input type="hidden" name="productId" value={product.id} />
                     <input type="hidden" name="nextActive" value={product.active ? "0" : "1"} />
                     <button type="submit" className="admin-link-button">{product.active ? "판매중지" : "재활성화"}</button>
-                  </form>
+                  </ActionForm>
                 </td>
               </tr>
             );
