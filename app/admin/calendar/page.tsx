@@ -73,8 +73,6 @@ export default async function AdminCalendarPage({
 
   return (
     <main className="admin">
-      <Link href="/admin" className="admin-back">← 목록으로</Link>
-
       <header className="admin-header">
         <h1>시공 일정 달력</h1>
         <p>시공예정일이 등록된 문의 {jobs.length}건 · {year}년 {month}월</p>

@@ -54,10 +54,36 @@ footer { padding:45px clamp(24px,5vw,78px) 68px; background:#f3f0e8; display:gri
 .consultation-summary { margin-top:32px; padding:22px; border:1px solid rgba(202,220,212,.36); background:rgba(255,255,255,.06); }.consultation-summary>span { display:block; color:#9dbab0; font-size:11px; font-weight:800; letter-spacing:.1em; }.consultation-summary strong { display:block; margin-top:11px; font-size:20px; }.consultation-summary p { margin:8px 0 16px; color:#d6e0db; font-size:14px; line-height:1.55; }.consultation-summary button { padding:0; border:0; border-bottom:1px solid #c6d4ce; color:#f8f5ed; background:none; font:inherit; font-size:13px; font-weight:800; cursor:pointer; }.consultation-summary button b { margin-left:9px; }.reservation-form textarea[name="message"] { min-height:102px; color:#dce8e2; line-height:1.6; }.inline-copy { padding:0; border:0; color:inherit; background:none; font:inherit; text-decoration:underline; cursor:pointer; }
 
 /* Admin console */
+.admin-shell { display:flex; min-height:100vh; background:#f6f4ee; }
+.admin-sidebar { width:220px; flex:0 0 220px; padding:28px 18px; background:#182725; color:#dce4e0; display:flex; flex-direction:column; gap:20px; position:sticky; top:0; height:100vh; }
+.admin-sidebar-brand { font-size:16px; font-weight:800; letter-spacing:-.02em; color:#fff; padding:0 10px; }
+.admin-sidebar-nav { display:flex; flex-direction:column; gap:4px; flex:1; }
+.admin-sidebar-nav a { display:flex; align-items:center; gap:10px; padding:11px 12px; border-radius:8px; color:#b9c6c1; text-decoration:none; font-size:13px; font-weight:600; }
+.admin-sidebar-nav a:hover { background:rgba(255,255,255,.06); color:#fff; }
+.admin-sidebar-nav a.active { background:var(--green); color:#fff; }
+.admin-sidebar-icon { font-size:14px; width:18px; text-align:center; }
+.admin-sidebar-footer { padding:0 10px; }
+.admin-sidebar-footer a { color:#8a9994; font-size:12px; text-decoration:none; }
+.admin-content { flex:1; min-width:0; }
 .admin { max-width:1180px; margin:0 auto; padding:36px 24px 90px; font-size:14px; }
 .admin-header { margin-bottom:24px; }
 .admin-header h1 { margin:0 0 6px; font-size:26px; letter-spacing:-.03em; }
-.admin-header p { margin:0; color:#5c6a65; font-size:13px; }
+.admin-header p { margin:0; color:#5c6a65; font-size:13px; max-width:760px; line-height:1.6; }
+.admin-proposal-list { display:flex; flex-direction:column; gap:18px; }
+.admin-proposal-head { display:flex; flex-wrap:wrap; justify-content:space-between; align-items:start; gap:10px; margin-bottom:10px; }
+.admin-proposal-head h2 { margin:0; font-size:17px; letter-spacing:-.02em; max-width:560px; }
+.admin-proposal-tags { display:flex; gap:6px; flex-wrap:wrap; }
+.admin-proposal-status-idea { background:#eef1ee; color:#5c6a65; }
+.admin-proposal-status-ready { background:#e6f2ee; color:#1d5e58; }
+.admin-proposal-status-in-progress { background:#fef4e0; color:#a06a0c; }
+.admin-proposal-status-done { background:#e9e9e9; color:#4a4a4a; }
+.admin-proposal-summary { margin:0 0 16px; color:#3a4542; font-size:13px; line-height:1.7; }
+.admin-proposal-section { margin-top:14px; padding-top:14px; border-top:1px solid var(--line); }
+.admin-proposal-section h3 { margin:0 0 8px; font-size:12px; font-weight:800; letter-spacing:.04em; color:#8a948f; text-transform:uppercase; }
+.admin-proposal-section p { margin:0; font-size:13px; line-height:1.7; color:#3a4542; }
+.admin-proposal-section ul, .admin-proposal-section ol { margin:0; padding-left:18px; display:flex; flex-direction:column; gap:6px; font-size:13px; line-height:1.6; color:#3a4542; }
+.admin-proposal-caveats { background:#fef9ef; margin-left:-22px; margin-right:-22px; padding-left:22px; padding-right:22px; padding-bottom:16px; }
+.admin-proposal-caveats h3 { color:#a06a0c; }
 .admin-back { display:inline-block; margin-bottom:18px; color:var(--green); font-weight:700; text-decoration:none; font-size:13px; }
 .admin-summary { display:grid; grid-template-columns:repeat(3,1fr); gap:16px; }
 .admin-summary div { display:flex; flex-direction:column; gap:6px; }
@@ -141,6 +167,12 @@ footer { padding:45px clamp(24px,5vw,78px) 68px; background:#f3f0e8; display:gri
   .admin-calendar-job { font-size:10px; }
   .admin-table-desktop { display:none; }
   .admin-card-list { display:flex; }
+  .admin-shell { flex-direction:column; }
+  .admin-sidebar { width:100%; flex:0 0 auto; height:auto; position:static; padding:14px 16px; flex-direction:row; align-items:center; gap:12px; }
+  .admin-sidebar-brand { padding:0; font-size:14px; }
+  .admin-sidebar-nav { flex-direction:row; flex:1; overflow-x:auto; gap:2px; }
+  .admin-sidebar-nav a { padding:8px 10px; white-space:nowrap; font-size:12px; }
+  .admin-sidebar-footer { display:none; }
 }
 @media (min-width:761px) {
   .admin-card-list { display:none; }

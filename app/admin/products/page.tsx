@@ -1,5 +1,4 @@
 import { desc } from "drizzle-orm";
-import Link from "next/link";
 import { getDb } from "../../../db";
 import { products } from "../../../db/schema";
 import { createProduct, toggleProductActiveForm, updateProduct } from "../actions";
@@ -13,8 +12,6 @@ export default async function AdminProductsPage() {
 
   return (
     <main className="admin">
-      <Link href="/admin" className="admin-back">← 목록으로</Link>
-
       <header className="admin-header">
         <h1>제품 · 단가 관리</h1>
         <p>m²(폭×높이) 기준 판매가·원가를 등록하면, 견적에서 자동으로 금액과 마진이 계산됩니다.</p>
