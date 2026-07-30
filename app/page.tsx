@@ -73,6 +73,43 @@ const guideProducts = [
   { id: "aluminum", family: "블라인드", name: "알루미늄 블라인드", image: "https://changane.com/web/product/medium/202211/f2707c7c18ec2fcb2a56ae8323803102.jpg", tags: ["깔끔함", "프라이버시"], best: "주방 · 욕실 인접창 · 작업 공간", mood: "선명하고 실용적인 모던함", control: "얇은 슬랫 각도를 조절해 빛을 빠르게 바꿉니다", privacy: "슬랫 기울기로 시선과 채광을 세밀하게 다룹니다", care: "물걸레 관리가 비교적 편하고 습기에 강한 소재 선택지가 있습니다", note: "관리 편의와 실용성을 우선할 때", caution: "슬랫 소음과 구김 가능성을 고려해 사용 공간을 정하세요.", sourceUrl: "https://changane.com/category/%EB%B8%94%EB%9D%BC%EC%9D%B8%EB%93%9C/43/", sourceLabel: "창안애 25mm 알루미늄블라인드" },
 ];
 
+// Mood-reference styling guide. These are NOT claims that blingreen installed at any named
+// venue — copy must stay in "이런 무드를 원하신다면" framing, never "우리가 시공한 곳" framing.
+const moodGuides = [
+  {
+    id: "hotel-lobby",
+    label: "호텔식 로비 무드",
+    kicker: "GRAND LOBBY MOOD",
+    description: "고급 호텔 로비에서 느껴지는 풍성하고 격식 있는 분위기를 참고했습니다. 두 겹의 커튼이 낮과 밤 모두 우아한 인상을 만듭니다.",
+    productIds: ["double", "sheer"],
+    tone: "mood-lobby",
+  },
+  {
+    id: "hotel-bedroom",
+    label: "호텔식 침실 무드",
+    kicker: "SUITE BEDROOM MOOD",
+    description: "여행지 호텔 객실처럼 완전한 암막과 차분함을 원할 때 참고하는 조합입니다. 숙면과 아늑함에 집중했습니다.",
+    productIds: ["blackout", "honeycomb"],
+    tone: "mood-bedroom",
+  },
+  {
+    id: "french-cafe",
+    label: "프렌치 카페 무드",
+    kicker: "FRENCH CAFÉ MOOD",
+    description: "파리의 작은 카페에서 느껴지는 내추럴하고 따뜻한 질감을 참고했습니다. 린넨과 우드의 조합이 편안한 인상을 만듭니다.",
+    productIds: ["drape", "wood"],
+    tone: "mood-cafe",
+  },
+  {
+    id: "minimal-resort",
+    label: "미니멀 리조트 리빙룸 무드",
+    kicker: "MINIMAL RESORT MOOD",
+    description: "군더더기 없는 리조트 라운지처럼 깔끔하고 개방적인 인상을 원할 때 참고하는 조합입니다. 넓은 창을 시원하게 정리합니다.",
+    productIds: ["roller", "vertical"],
+    tone: "mood-resort",
+  },
+] as const;
+
 export default function Home() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [submitted, setSubmitted] = useState(false);
@@ -89,6 +126,10 @@ export default function Home() {
   const [messageDirty, setMessageDirty] = useState(false);
   const filteredProducts = useMemo(() => selectedNeed === "전체" ? guideProducts : guideProducts.filter((item) => item.tags.includes(selectedNeed)), [selectedNeed]);
   const featuredProduct = guideProducts.find((item) => item.id === selectedProduct) ?? guideProducts[3];
+  const moodGuidesResolved = useMemo(() => moodGuides.map((mood) => ({
+    ...mood,
+    products: mood.productIds.map((id) => guideProducts.find((p) => p.id === id)).filter((p): p is (typeof guideProducts)[number] => Boolean(p)),
+  })), []);
   const diagnosisComplete = diagnosisStep === diagnosisQuestions.length;
   const diagnosisResults = useMemo(() => !diagnosisComplete ? [] : [...guideProducts].map((product) => ({ product, score: (product.best.includes(diagnosisAnswers.room) ? 4 : 0) + (product.tags.includes(diagnosisAnswers.priority as Need) ? 3 : 0) + (moodMatches[diagnosisAnswers.mood]?.includes(product.id) ? 2 : 0) })).sort((a, b) => b.score - a.score).slice(0, 3).map((item) => item.product), [diagnosisAnswers, diagnosisComplete]);
   const consultationSummary = diagnosisComplete ? `진단 결과 · ${diagnosisAnswers.room} / ${diagnosisAnswers.priority} / ${diagnosisAnswers.mood}\n추천 제품 · ${diagnosisResults.map((product) => product.name).join(", ")}` : "제품 진단 전 · 상담을 통해 공간에 맞는 제품을 함께 추천받고 싶어요.";
@@ -133,6 +174,7 @@ export default function Home() {
         <nav className={isMenuOpen ? "nav open" : "nav"} aria-label="주요 메뉴">
           <a href="#projects" onClick={() => setIsMenuOpen(false)}>시공 사례</a>
           <a href="#reviews" onClick={() => setIsMenuOpen(false)}>실제 후기</a>
+          <a href="#mood" onClick={() => setIsMenuOpen(false)}>무드 참고</a>
           <a href="#guide" onClick={() => setIsMenuOpen(false)}>제품 가이드</a>
           <a href="#diagnosis" onClick={() => setIsMenuOpen(false)}>제품 진단</a>
           <a href="#process" onClick={() => setIsMenuOpen(false)}>상담 안내</a>
@@ -216,6 +258,42 @@ export default function Home() {
           </a>)}
         </div>
         <p className="review-note">※ 첫 번째 카드는 공개된 고객 후기 원문이며, 나머지는 블린그린 공식 채널의 실제 시공 기록입니다. 사진·영상과 설명은 각 원문에서 확인할 수 있으며, 카드를 누르면 출처로 이동합니다.</p>
+      </section>
+
+      <section className="mood section" id="mood" aria-labelledby="mood-title">
+        <p className="section-kicker">STYLING REFERENCE</p>
+        <div className="mood-head">
+          <h2 id="mood-title">이런 공간의 분위기를<br />원하고 계신가요?</h2>
+          <p>익숙한 공간의 무드를 참고해, 그 느낌에 어울리는 제품 조합을 미리 제안해 드립니다.</p>
+        </div>
+        <p className="mood-disclaimer">※ 아래 이미지와 설명은 해당 장소를 블린그린이 실제로 시공했다는 의미가 아니며, 무드를 설명하기 위한 스타일 참고 자료입니다. 실제 조합과 시공 가능 여부는 방문 상담에서 확인해 드립니다.</p>
+        <div className="mood-grid">
+          {moodGuidesResolved.map((mood) => (
+            <article className={`mood-card ${mood.tone}`} key={mood.id}>
+              <div className="mood-card-art" />
+              <span className="mood-card-badge">무드 참고</span>
+              <div className="mood-card-body">
+                <p className="mood-card-kicker">{mood.kicker}</p>
+                <h3>{mood.label}</h3>
+                <p className="mood-card-desc">{mood.description}</p>
+                <div className="mood-card-products">
+                  {mood.products.map((product) => (
+                    <button
+                      key={product.id}
+                      type="button"
+                      onClick={() => {
+                        setSelectedProduct(product.id);
+                        document.getElementById("guide")?.scrollIntoView({ behavior: "smooth" });
+                      }}
+                    >
+                      {product.name} <span>↗</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </article>
+          ))}
+        </div>
       </section>
 
       <section className="guide section" id="guide" aria-labelledby="guide-title">
