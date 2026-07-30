@@ -53,6 +53,47 @@ export default async function AdminPartnersPage() {
     .filter((r) => r.feeStatus === "paid")
     .reduce((acc, r) => acc + (r.feeAmount ?? 0), 0);
 
+  type PartnerStat = {
+    partnerId: number;
+    name: string;
+    category: string;
+    referralCount: number;
+    closedCount: number; // referrals with a confirmed job amount
+    totalJobAmount: number;
+    totalFee: number;
+    paidFee: number;
+  };
+
+  const statsByPartner = new Map<number, PartnerStat>();
+  for (const partner of partnerRows) {
+    statsByPartner.set(partner.id, {
+      partnerId: partner.id,
+      name: partner.name,
+      category: partner.category,
+      referralCount: 0,
+      closedCount: 0,
+      totalJobAmount: 0,
+      totalFee: 0,
+      paidFee: 0,
+    });
+  }
+  for (const r of referralRows) {
+    const stat = statsByPartner.get(r.partnerId);
+    if (!stat) continue; // partner was deleted; skip from summary
+    stat.referralCount += 1;
+    if (r.jobAmount !== null) {
+      stat.closedCount += 1;
+      stat.totalJobAmount += r.jobAmount;
+    }
+    if (r.feeAmount !== null) {
+      stat.totalFee += r.feeAmount;
+      if (r.feeStatus === "paid") stat.paidFee += r.feeAmount;
+    }
+  }
+  const partnerStats = [...statsByPartner.values()]
+    .filter((s) => s.referralCount > 0)
+    .sort((a, b) => b.referralCount - a.referralCount);
+
   return (
     <main className="admin">
       <header className="admin-header">
@@ -143,6 +184,45 @@ export default async function AdminPartnersPage() {
             )}
           </tbody>
         </table>
+      </section>
+
+      <section className="admin-card">
+        <h2>파트너별 실적 요약</h2>
+        <table className="admin-table">
+          <thead>
+            <tr>
+              <th>업체명</th>
+              <th>분야</th>
+              <th>배정 건수</th>
+              <th>성사(시공금액 확인) 건수</th>
+              <th>성사율</th>
+              <th>누적 시공금액</th>
+              <th>누적 소개료 (정산완료)</th>
+            </tr>
+          </thead>
+          <tbody>
+            {partnerStats.map((s) => {
+              const closeRate = s.referralCount > 0 ? Math.round((s.closedCount / s.referralCount) * 100) : 0;
+              return (
+                <tr key={s.partnerId}>
+                  <td>{s.name}</td>
+                  <td>{s.category}</td>
+                  <td>{s.referralCount}건</td>
+                  <td>{s.closedCount}건</td>
+                  <td>{closeRate}%</td>
+                  <td>{s.totalJobAmount.toLocaleString()}원</td>
+                  <td>{s.totalFee.toLocaleString()}원 ({s.paidFee.toLocaleString()}원)</td>
+                </tr>
+              );
+            })}
+            {partnerStats.length === 0 && (
+              <tr><td colSpan={7} className="admin-empty">아직 배정 이력이 있는 파트너가 없습니다.</td></tr>
+            )}
+          </tbody>
+        </table>
+        <p className="admin-meta" style={{ marginTop: 10 }}>
+          &quot;성사&quot;는 아래 배정 현황에서 시공금액을 입력한 건을 기준으로 집계됩니다. 누적 소개료의 괄호 안은 그중 실제로 정산 완료된 금액입니다.
+        </p>
       </section>
 
       <section className="admin-card">
