@@ -209,19 +209,28 @@ export default async function AdminInquiryDetailPage({
             <p className="admin-detail-text">
               <b>{referredPartner?.name ?? "삭제된 파트너"}</b>에 {formatDate(referral.referredAt)} 배정됨
             </p>
-            <FormToast action={updateReferralOutcome} className="admin-form-row" successMessage="배정 정보를 저장했습니다.">
-              <input type="hidden" name="referralId" value={referral.id} />
-              <input name="jobAmount" defaultValue={referral.jobAmount ?? ""} placeholder="시공금액(원)" inputMode="numeric" style={{ width: 130 }} />
-              <select name="feeStatus" defaultValue={referral.feeStatus}>
-                <option value="pending">정산 대기</option>
-                <option value="invoiced">청구함</option>
-                <option value="paid">정산 완료</option>
-              </select>
-              <input name="memo" defaultValue={referral.memo} placeholder="메모" style={{ width: 160 }} />
-              <button type="submit">저장</button>
-            </FormToast>
-            {referral.feeAmount !== null && (
-              <p className="admin-meta" style={{ marginTop: 8 }}>소개료 {referral.feeAmount.toLocaleString()}원</p>
+            {referral.feeStatus === "paid" ? (
+              <p className="admin-detail-text">
+                시공금액 {(referral.jobAmount ?? 0).toLocaleString()}원 · 소개료 {(referral.feeAmount ?? 0).toLocaleString()}원<br />
+                <span className="admin-meta">정산 완료된 건은 금액을 다시 수정할 수 없습니다.</span>
+              </p>
+            ) : (
+              <>
+                <FormToast action={updateReferralOutcome} className="admin-form-row" successMessage="배정 정보를 저장했습니다.">
+                  <input type="hidden" name="referralId" value={referral.id} />
+                  <input name="jobAmount" defaultValue={referral.jobAmount ?? ""} placeholder="시공금액(원)" inputMode="numeric" style={{ width: 130 }} />
+                  <select name="feeStatus" defaultValue={referral.feeStatus}>
+                    <option value="pending">정산 대기</option>
+                    <option value="invoiced">청구함</option>
+                    <option value="paid">정산 완료</option>
+                  </select>
+                  <input name="memo" defaultValue={referral.memo} placeholder="메모" style={{ width: 160 }} />
+                  <button type="submit">저장</button>
+                </FormToast>
+                {referral.feeAmount !== null && (
+                  <p className="admin-meta" style={{ marginTop: 8 }}>소개료 {referral.feeAmount.toLocaleString()}원</p>
+                )}
+              </>
             )}
           </>
         ) : activePartners.length > 0 ? (

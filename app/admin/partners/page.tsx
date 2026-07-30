@@ -247,18 +247,27 @@ export default async function AdminPartnersPage() {
                   <td><Link href={`/admin/${r.inquiryId}`}>{r.customerName}</Link><br /><span className="admin-meta">{r.customerPhone}</span></td>
                   <td>{partner?.name ?? "-"}</td>
                   <td>
-                    <FormToast action={updateReferralOutcome} className="admin-form-row" successMessage="저장했습니다.">
-                      <input type="hidden" name="referralId" value={r.id} />
-                      <input name="jobAmount" defaultValue={r.jobAmount ?? ""} placeholder="시공금액(원)" inputMode="numeric" style={{ width: 110 }} />
-                      <select name="feeStatus" defaultValue={r.feeStatus} style={{ width: 100 }}>
-                        <option value="pending">정산 대기</option>
-                        <option value="invoiced">청구함</option>
-                        <option value="paid">정산 완료</option>
-                      </select>
-                      <input name="memo" defaultValue={r.memo} placeholder="메모" style={{ width: 120 }} />
-                      <button type="submit">저장</button>
-                    </FormToast>
-                    {r.feeAmount !== null && <p className="admin-meta" style={{ marginTop: 6 }}>소개료 {r.feeAmount.toLocaleString()}원</p>}
+                    {r.feeStatus === "paid" ? (
+                      <p className="admin-detail-text">
+                        시공금액 {(r.jobAmount ?? 0).toLocaleString()}원 · 소개료 {(r.feeAmount ?? 0).toLocaleString()}원<br />
+                        <span className="admin-meta">정산 완료된 건은 금액을 다시 수정할 수 없습니다.</span>
+                      </p>
+                    ) : (
+                      <>
+                        <FormToast action={updateReferralOutcome} className="admin-form-row" successMessage="저장했습니다.">
+                          <input type="hidden" name="referralId" value={r.id} />
+                          <input name="jobAmount" defaultValue={r.jobAmount ?? ""} placeholder="시공금액(원)" inputMode="numeric" style={{ width: 110 }} />
+                          <select name="feeStatus" defaultValue={r.feeStatus} style={{ width: 100 }}>
+                            <option value="pending">정산 대기</option>
+                            <option value="invoiced">청구함</option>
+                            <option value="paid">정산 완료</option>
+                          </select>
+                          <input name="memo" defaultValue={r.memo} placeholder="메모" style={{ width: 120 }} />
+                          <button type="submit">저장</button>
+                        </FormToast>
+                        {r.feeAmount !== null && <p className="admin-meta" style={{ marginTop: 6 }}>소개료 {r.feeAmount.toLocaleString()}원</p>}
+                      </>
+                    )}
                   </td>
                   <td><span className={`admin-badge ${r.feeStatus === "paid" ? "status-scheduled" : "status-new"}`}>{FEE_STATUS_LABEL[r.feeStatus] ?? r.feeStatus}</span></td>
                   <td></td>

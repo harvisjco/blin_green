@@ -535,8 +535,15 @@ export async function updateReferralOutcome(formData: FormData): Promise<ActionR
     const db = getDb();
     const [referral] = await db.select().from(partnerReferrals).where(eq(partnerReferrals.id, referralId)).limit(1);
     if (!referral) return { ok: false, error: "배정 기록을 찾을 수 없습니다." };
-    const [partner] = await db.select().from(partners).where(eq(partners.id, referral.partnerId)).limit(1);
 
+    // Once a fee is marked paid, its amount is a settled financial fact — don't let a
+    // later edit (e.g. a partner's fee rate changing, or just re-saving the memo)
+    // silently recompute and overwrite money that was already paid out.
+    if (referral.feeStatus === "paid") {
+      return { ok: false, error: "이미 정산 완료된 건은 수정할 수 없습니다. 금액이 잘못됐다면 관리자에게 문의해 별도로 정정해 주세요." };
+    }
+
+    const [partner] = await db.select().from(partners).where(eq(partners.id, referral.partnerId)).limit(1);
     const feeAmount = partner ? calculateFee(partner.feeType, partner.feeValue, jobAmount) : null;
 
     await db
