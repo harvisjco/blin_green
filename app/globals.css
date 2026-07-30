@@ -62,6 +62,8 @@ footer { padding:45px clamp(24px,5vw,78px) 68px; background:#f3f0e8; display:gri
 .admin-sidebar-nav a:hover { background:rgba(255,255,255,.06); color:#fff; }
 .admin-sidebar-nav a.active { background:var(--green); color:#fff; }
 .admin-sidebar-icon { font-size:14px; width:18px; text-align:center; }
+.admin-sidebar-badge { margin-left:auto; padding:1px 7px; border-radius:20px; background:#e0623f; color:#fff; font-size:11px; font-weight:800; }
+.admin-sidebar-nav a.active .admin-sidebar-badge { background:#fff; color:var(--green); }
 .admin-sidebar-footer { padding:0 10px; }
 .admin-sidebar-footer a { color:#8a9994; font-size:12px; text-decoration:none; }
 .admin-content { flex:1; min-width:0; }
@@ -168,6 +170,16 @@ footer { padding:45px clamp(24px,5vw,78px) 68px; background:#f3f0e8; display:gri
 .admin-duplicate-warning { flex-basis:100%; margin:8px 0 0; padding:8px 12px; border-radius:6px; background:#fef4e0; color:#6b4a08; font-size:12px; font-weight:700; }
 .admin-status-history { list-style:none; margin:10px 0 0; padding:10px 0 0; border-top:1px solid var(--line); display:flex; flex-direction:column; gap:6px; }
 .admin-status-history li { display:flex; justify-content:space-between; gap:10px; font-size:12px; }
+.admin-status-hint { margin:10px 0 0; padding:8px 10px; background:#f6f4ee; border-radius:6px; font-size:11px; color:#5c6a65; line-height:1.6; }
+.admin-other-inquiries { margin-top:14px; padding-top:12px; border-top:1px solid var(--line); }
+.admin-other-inquiries-list { display:flex; flex-wrap:wrap; gap:8px; margin-top:8px; }
+.admin-other-inquiry-chip { display:flex; align-items:center; gap:6px; padding:6px 10px; border:1px solid var(--line); border-radius:20px; text-decoration:none; color:var(--ink); font-size:12px; background:#fff; }
+.admin-other-inquiry-chip:hover { border-color:var(--green); }
+.admin-collapsible summary { cursor:pointer; font-size:15px; font-weight:700; letter-spacing:-.02em; list-style:none; }
+.admin-collapsible summary::-webkit-details-marker { display:none; }
+.admin-collapsible summary::before { content:"▸ "; color:var(--green); }
+.admin-collapsible[open] summary::before { content:"▾ "; }
+.admin-collapsible[open] summary { margin-bottom:14px; }
 .admin-card-list { display:none; flex-direction:column; gap:10px; }
 .admin-mobile-card { display:block; padding:14px 16px; background:#fff; border:1px solid var(--line); border-radius:10px; text-decoration:none; color:var(--ink); }
 .admin-mobile-card-top { display:flex; justify-content:space-between; align-items:center; margin-bottom:6px; }

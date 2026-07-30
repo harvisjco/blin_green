@@ -51,9 +51,11 @@ export default async function AdminInquiryDetailPage({
     .orderBy(desc(inquiryNotes.createdAt));
 
   const otherInquiries = await db
-    .select()
+    .select({ id: inquiries.id, status: inquiries.status, createdAt: inquiries.createdAt, interest: inquiries.interest })
     .from(inquiries)
-    .where(eq(inquiries.customerId, inquiry.customerId));
+    .where(eq(inquiries.customerId, inquiry.customerId))
+    .orderBy(desc(inquiries.createdAt));
+  const otherInquiriesExceptCurrent = otherInquiries.filter((r) => r.id !== inquiryId);
 
   const statusHistory = await db
     .select()
@@ -86,7 +88,7 @@ export default async function AdminInquiryDetailPage({
       <header className="admin-header">
         <h1>{customer?.name} 고객 상담 기록</h1>
         <p>
-          {customer?.phone} · {customer?.area || "지역 미입력"} · 이 고객의 문의 {otherInquiries.length}건
+          {customer?.phone} · {customer?.area || "지역 미입력"}
           {customer?.phone && (
             <>
               {" · "}
@@ -96,6 +98,19 @@ export default async function AdminInquiryDetailPage({
             </>
           )}
         </p>
+        {otherInquiriesExceptCurrent.length > 0 && (
+          <div className="admin-other-inquiries">
+            <span className="admin-meta">이 고객의 다른 문의 {otherInquiriesExceptCurrent.length}건</span>
+            <div className="admin-other-inquiries-list">
+              {otherInquiriesExceptCurrent.map((other) => (
+                <Link key={other.id} href={`/admin/${other.id}`} className="admin-other-inquiry-chip">
+                  <span className={`admin-badge status-${other.status}`}>{STATUS_LABEL[other.status] ?? other.status}</span>
+                  <span>{formatDate(other.createdAt)}</span>
+                </Link>
+              ))}
+            </div>
+          </div>
+        )}
       </header>
 
       <div className="admin-grid">
@@ -111,6 +126,9 @@ export default async function AdminInquiryDetailPage({
           <p className="admin-meta">
             최초 접수 {formatDate(inquiry.createdAt)} · 최근 수정 {formatDate(inquiry.updatedAt)}
             {inquiry.completedAt && <> · 시공 완료 {formatDate(inquiry.completedAt)}</>}
+          </p>
+          <p className="admin-status-hint">
+            💡 &quot;완료&quot;로 바꾸면 시공완료일이 자동 기록되어 <Link href="/admin/remarketing">재구매 리마케팅</Link>과 <Link href="/admin/reviews">후기 요청 대상</Link>에 자동으로 반영됩니다.
           </p>
           {statusHistory.length > 0 && (
             <ul className="admin-status-history">
@@ -162,21 +180,23 @@ export default async function AdminInquiryDetailPage({
 
       <section className="admin-card">
         <h2>견적 품목 · 수익 계산</h2>
+        <p className="admin-meta">
+          ① 아래 목록에서 제품을 고르면 단가가 자동 적용됩니다. ② 목록에 없는 제품이면 &quot;직접 입력 (단가 없음)&quot;을 고르고 제품명만 적어주세요 — 이 경우 금액은 0원으로 기록되니, 나중에 <Link href="/admin/products">제품 관리</Link>에서 정식으로 등록한 뒤 다시 추가해 주세요.
+        </p>
         <FormToast action={addInquiryItem} className="admin-form-row" successMessage="품목을 추가했습니다.">
           <input type="hidden" name="inquiryId" value={inquiryId} />
           <select name="productId">
-            <option value="">직접 입력</option>
+            <option value="">직접 입력 (단가 없음)</option>
             {catalog.map((product) => (
               <option key={product.id} value={product.id}>{product.name} ({product.priceCents.toLocaleString()}원/m²)</option>
             ))}
           </select>
-          <input name="productName" placeholder="제품명(직접 입력 시)" style={{ width: 140 }} />
+          <input name="productName" placeholder="제품명 (직접 입력 선택 시에만 사용)" style={{ width: 180 }} />
           <input name="widthCm" placeholder="폭(cm)" inputMode="numeric" required style={{ width: 80 }} />
           <input name="heightCm" placeholder="높이(cm)" inputMode="numeric" required style={{ width: 80 }} />
           <input name="quantity" placeholder="수량" inputMode="numeric" defaultValue={1} style={{ width: 60 }} />
           <button type="submit">품목 추가</button>
         </FormToast>
-        <p className="admin-meta">카탈로그 제품을 선택하면 <Link href="/admin/products">등록된 단가</Link>가 자동 적용됩니다. 목록에 없는 제품은 &quot;직접 입력&quot;으로 이름만 남기고, 금액은 0원으로 기록되니 이후 <Link href="/admin/products">제품 관리</Link>에서 등록해 주세요.</p>
 
         <table className="admin-table" style={{ marginTop: 14 }}>
           <thead>

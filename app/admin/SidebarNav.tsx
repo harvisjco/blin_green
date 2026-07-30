@@ -14,7 +14,7 @@ const NAV_ITEMS = [
   { href: "/admin/insights", label: "AI 제안", icon: "✨" },
 ] as const;
 
-export function SidebarNav() {
+export function SidebarNav({ pendingCount = 0 }: { pendingCount?: number }) {
   const pathname = usePathname();
 
   return (
@@ -25,6 +25,9 @@ export function SidebarNav() {
           <Link key={item.href} href={item.href} className={active ? "active" : ""}>
             <span className="admin-sidebar-icon" aria-hidden="true">{item.icon}</span>
             {item.label}
+            {item.href === "/admin" && pendingCount > 0 && (
+              <span className="admin-sidebar-badge">{pendingCount}</span>
+            )}
           </Link>
         );
       })}

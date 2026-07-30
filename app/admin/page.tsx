@@ -101,10 +101,10 @@ export default async function AdminPage({
         <div><span>예상 마진</span><strong>{margin.toLocaleString()}원 {revenue > 0 ? `(${Math.round((margin / revenue) * 100)}%)` : ""}</strong></div>
       </section>
 
-      <section className="admin-card">
-        <h2>새 문의 직접 등록</h2>
+      <details className="admin-card admin-collapsible">
+        <summary>새 문의 직접 등록</summary>
         <NewInquiryForm action={createManualInquiry} referrerOptions={referrerOptions} />
-      </section>
+      </details>
 
       <section className="admin-card">
         <form className="admin-filter-bar" method="get">
