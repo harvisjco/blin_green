@@ -569,6 +569,16 @@ export async function updateReferralOutcome(formData: FormData): Promise<ActionR
 
 // --- Competitor price tracking (manual entries only, no scraping) ---
 
+function isSafeHttpUrl(value: string): boolean {
+  if (!value) return true; // empty is allowed, field is optional
+  try {
+    const url = new URL(value);
+    return url.protocol === "http:" || url.protocol === "https:";
+  } catch {
+    return false;
+  }
+}
+
 export async function addCompetitorPrice(formData: FormData): Promise<ActionResult> {
   const productId = Number(formData.get("productId"));
   const siteName = String(formData.get("siteName") ?? "").trim();
@@ -580,6 +590,7 @@ export async function addCompetitorPrice(formData: FormData): Promise<ActionResu
   if (!productId) return { ok: false, error: "제품을 선택해 주세요." };
   if (!siteName) return { ok: false, error: "사이트명을 입력해 주세요." };
   if (!(priceWon > 0)) return { ok: false, error: "가격은 0보다 큰 값이어야 합니다." };
+  if (!isSafeHttpUrl(listingUrl)) return { ok: false, error: "상품 링크는 http:// 또는 https:// 로 시작하는 주소여야 합니다." };
 
   try {
     const db = getDb();
