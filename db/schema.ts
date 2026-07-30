@@ -129,3 +129,18 @@ export const partnerReferrals = sqliteTable("partner_referrals", {
   memo: text("memo").notNull().default(""),
   createdAt: text("created_at").notNull().default(sql`CURRENT_TIMESTAMP`),
 });
+
+// A manually-recorded competitor price snapshot for one of our catalog products.
+// Admin looks the product up on a marketplace themselves and logs what they found here —
+// no automated scraping/crawling of external sites.
+export const competitorPrices = sqliteTable("competitor_prices", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  productId: integer("product_id").notNull().references(() => products.id),
+  siteName: text("site_name").notNull(), // e.g. 네이버쇼핑, 쿠팡, 지그재그
+  listingTitle: text("listing_title").notNull().default(""), // the competitor's product title, for reference
+  listingUrl: text("listing_url").notNull().default(""),
+  priceWon: integer("price_won").notNull(), // observed price per m2 (or per listing, noted in memo), in won
+  observedAt: text("observed_at").notNull().default(sql`CURRENT_TIMESTAMP`),
+  memo: text("memo").notNull().default(""),
+  createdAt: text("created_at").notNull().default(sql`CURRENT_TIMESTAMP`),
+});

@@ -12,6 +12,7 @@ const NAV_ITEMS = [
   { href: "/admin/reviews", label: "후기 수집", icon: "⭐" },
   { href: "/admin/partners", label: "파트너 네트워크", icon: "🤝" },
   { href: "/admin/products", label: "제품 · 단가", icon: "🏷" },
+  { href: "/admin/pricing-watch", label: "가격 비교", icon: "🔍" },
   { href: "/admin/insights", label: "AI 제안", icon: "✨" },
 ] as const;
 

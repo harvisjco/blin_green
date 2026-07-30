@@ -182,6 +182,11 @@ footer { padding:45px clamp(24px,5vw,78px) 68px; background:#f3f0e8; display:gri
 .admin-collapsible summary::before { content:"▸ "; color:var(--green); }
 .admin-collapsible[open] summary::before { content:"▾ "; }
 .admin-collapsible[open] summary { margin-bottom:14px; }
+.admin-pricewatch-links { display:flex; flex-wrap:wrap; gap:8px; }
+.admin-pricewatch-link { padding:7px 12px; border:1px solid var(--line); border-radius:20px; font-size:12px; font-weight:700; color:var(--green); text-decoration:none; background:#f6f4ee; }
+.admin-pricewatch-link:hover { border-color:var(--green); }
+.admin-pricewatch-higher { color:#a3372f; }
+.admin-pricewatch-lower { color:#1d5e58; }
 .admin-card-list { display:none; flex-direction:column; gap:10px; }
 .admin-mobile-card { display:block; padding:14px 16px; background:#fff; border:1px solid var(--line); border-radius:10px; text-decoration:none; color:var(--ink); }
 .admin-mobile-card-top { display:flex; justify-content:space-between; align-items:center; margin-bottom:6px; }

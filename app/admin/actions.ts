@@ -4,6 +4,7 @@ import { and, desc, eq, gte, ne } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { getDb } from "../../db";
 import {
+  competitorPrices,
   customers,
   inquiries,
   inquiryItems,
@@ -563,5 +564,45 @@ export async function updateReferralOutcome(formData: FormData): Promise<ActionR
   } catch (error) {
     logActionError("updateReferralOutcome", error);
     return { ok: false, error: "저장에 실패했습니다." };
+  }
+}
+
+// --- Competitor price tracking (manual entries only, no scraping) ---
+
+export async function addCompetitorPrice(formData: FormData): Promise<ActionResult> {
+  const productId = Number(formData.get("productId"));
+  const siteName = String(formData.get("siteName") ?? "").trim();
+  const listingTitle = String(formData.get("listingTitle") ?? "").trim();
+  const listingUrl = String(formData.get("listingUrl") ?? "").trim();
+  const priceWon = Number(String(formData.get("priceWon") ?? "").replace(/[^0-9]/g, ""));
+  const memo = String(formData.get("memo") ?? "").trim();
+
+  if (!productId) return { ok: false, error: "제품을 선택해 주세요." };
+  if (!siteName) return { ok: false, error: "사이트명을 입력해 주세요." };
+  if (!(priceWon > 0)) return { ok: false, error: "가격은 0보다 큰 값이어야 합니다." };
+
+  try {
+    const db = getDb();
+    await db.insert(competitorPrices).values({ productId, siteName, listingTitle, listingUrl, priceWon, memo });
+    revalidatePath("/admin/pricing-watch");
+    return { ok: true };
+  } catch (error) {
+    logActionError("addCompetitorPrice", error);
+    return { ok: false, error: "가격 기록에 실패했습니다." };
+  }
+}
+
+export async function removeCompetitorPrice(formData: FormData): Promise<ActionResult> {
+  const priceId = Number(formData.get("priceId"));
+  if (!priceId) return { ok: false, error: "잘못된 요청입니다." };
+
+  try {
+    const db = getDb();
+    await db.delete(competitorPrices).where(eq(competitorPrices.id, priceId));
+    revalidatePath("/admin/pricing-watch");
+    return { ok: true };
+  } catch (error) {
+    logActionError("removeCompetitorPrice", error);
+    return { ok: false, error: "삭제에 실패했습니다." };
   }
 }
