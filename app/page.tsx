@@ -86,6 +86,7 @@ export default function Home() {
   const [openFaq, setOpenFaq] = useState<number | null>(0);
   const [photoNames, setPhotoNames] = useState<string[]>([]);
   const [messageDraft, setMessageDraft] = useState<string | null>(null);
+  const [messageDirty, setMessageDirty] = useState(false);
   const filteredProducts = useMemo(() => selectedNeed === "전체" ? guideProducts : guideProducts.filter((item) => item.tags.includes(selectedNeed)), [selectedNeed]);
   const featuredProduct = guideProducts.find((item) => item.id === selectedProduct) ?? guideProducts[3];
   const diagnosisComplete = diagnosisStep === diagnosisQuestions.length;
@@ -95,7 +96,7 @@ export default function Home() {
   function chooseDiagnosis(option: string) { const question = diagnosisQuestions[diagnosisStep]; setDiagnosisAnswers((current) => ({ ...current, [question.key]: option })); setDiagnosisStep((current) => current + 1); }
 
   useEffect(() => { captureAttribution(); }, []);
-  useEffect(() => { if (diagnosisComplete) setMessageDraft(consultationSummary); }, [diagnosisComplete, consultationSummary]);
+  useEffect(() => { if (diagnosisComplete && !messageDirty) setMessageDraft(consultationSummary); }, [diagnosisComplete, consultationSummary, messageDirty]);
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -114,6 +115,7 @@ export default function Home() {
     if (result.ok) {
       setSubmitted(true);
       setMessageDraft(null);
+      setMessageDirty(false);
       form.reset();
     } else {
       setSubmitError(result.error);
@@ -281,7 +283,7 @@ export default function Home() {
           <label>성함<input required name="name" placeholder="성함을 입력해 주세요" /></label>
           <label>연락처<input required name="phone" inputMode="tel" placeholder="010-0000-0000" /></label>
           <div className="form-row"><label>지역<input name="area" placeholder="예: 청라, 김포 풍무동" /></label><label>상담 방식<select name="method" defaultValue=""><option value="" disabled>선택해 주세요</option><option>전화 상담</option><option>방문 실측 상담</option><option>제품 추천 상담</option></select></label></div>
-          <label>관심 제품 · 진단 결과<textarea name="message" rows={4} value={messageValue} onChange={(event) => setMessageDraft(event.target.value)} aria-label="관심 제품 및 진단 결과" /></label>
+          <label>관심 제품 · 진단 결과<textarea name="message" rows={4} value={messageValue} onChange={(event) => { setMessageDraft(event.target.value); setMessageDirty(true); }} aria-label="관심 제품 및 진단 결과" /></label>
           <label>추가로 알려주실 내용<textarea name="detail" rows={3} placeholder="창 사진 보유 여부, 희망 시기, 기존 설치물·철거 여부 등을 적어 주세요" /></label>
           <label className="consent"><input type="checkbox" required /><span>상담을 위한 개인정보 수집 및 이용에 동의합니다.</span></label>
           <button className="submit-button" type="submit" disabled={submitting}>{submitting ? "접수 중..." : "방문상담 신청하기"} <span>↗</span></button>
