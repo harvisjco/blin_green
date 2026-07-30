@@ -265,7 +265,10 @@ export async function addInquiryItem(formData: FormData): Promise<ActionResult> 
   const widthCm = Number(formData.get("widthCm"));
   const heightCm = Number(formData.get("heightCm"));
   const quantity = Number(formData.get("quantity")) || 1;
-  if (!inquiryId || !widthCm || !heightCm) return { ok: false, error: "폭과 높이를 입력해 주세요." };
+  if (!inquiryId) return { ok: false, error: "잘못된 요청입니다." };
+  if (!(widthCm > 0) || !(heightCm > 0) || !(quantity > 0)) {
+    return { ok: false, error: "폭·높이·수량은 0보다 큰 값이어야 합니다." };
+  }
 
   try {
     const db = getDb();
