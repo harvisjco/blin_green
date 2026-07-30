@@ -4,6 +4,8 @@ import { getDb } from "../../db";
 import { inquiries } from "../../db/schema";
 import { SidebarNav } from "./SidebarNav";
 
+export const dynamic = "force-dynamic";
+
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
   const db = getDb();
   const pending = await db

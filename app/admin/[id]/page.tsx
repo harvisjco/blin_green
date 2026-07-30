@@ -51,7 +51,7 @@ export default async function AdminInquiryDetailPage({
     .orderBy(desc(inquiryNotes.createdAt));
 
   const otherInquiries = await db
-    .select({ id: inquiries.id, status: inquiries.status, createdAt: inquiries.createdAt, interest: inquiries.interest })
+    .select({ id: inquiries.id, status: inquiries.status, createdAt: inquiries.createdAt })
     .from(inquiries)
     .where(eq(inquiries.customerId, inquiry.customerId))
     .orderBy(desc(inquiries.createdAt));
