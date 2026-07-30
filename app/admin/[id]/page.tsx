@@ -107,7 +107,10 @@ export default async function AdminInquiryDetailPage({
       <Link href="/admin" className="admin-back">← 목록으로</Link>
 
       <header className="admin-header">
-        <h1>{customer?.name} 고객 상담 기록</h1>
+        <h1>
+          {customer?.name} 고객 상담 기록
+          {referral && <span className="admin-badge admin-badge-partner" title={`${referredPartner?.name ?? "파트너"}에게 배정됨`}>🤝 {referredPartner?.name ?? "파트너"} 배정</span>}
+        </h1>
         <p>
           {customer?.phone} · {customer?.area || "지역 미입력"}
           {customer?.phone && (

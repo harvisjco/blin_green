@@ -1,7 +1,7 @@
 import { desc, eq, inArray } from "drizzle-orm";
 import Link from "next/link";
 import { getDb } from "../../db";
-import { customers, inquiries, inquiryItems } from "../../db/schema";
+import { customers, inquiries, inquiryItems, partnerReferrals, partners } from "../../db/schema";
 import { createManualInquiry } from "./actions";
 import { NewInquiryForm } from "./NewInquiryForm";
 import { itemAmount, itemCost } from "./pricing";
@@ -47,6 +47,12 @@ export default async function AdminPage({
     .innerJoin(customers, eq(inquiries.customerId, customers.id))
     .orderBy(desc(inquiries.createdAt));
 
+  const referralRows = await db
+    .select({ inquiryId: partnerReferrals.inquiryId, partnerName: partners.name, feeStatus: partnerReferrals.feeStatus })
+    .from(partnerReferrals)
+    .innerJoin(partners, eq(partnerReferrals.partnerId, partners.id));
+  const referralByInquiry = new Map(referralRows.map((r) => [r.inquiryId, r]));
+
   const counts = allRows.reduce<Record<string, number>>((acc, row) => {
     acc[row.status] = (acc[row.status] ?? 0) + 1;
     return acc;
@@ -55,12 +61,15 @@ export default async function AdminPage({
   const needsAttention = allRows.filter((row) => row.status === "new" || row.status === "consulting").length;
 
   const normalizedQuery = query.replace(/[^0-9a-zA-Z가-힣]/g, "").toLowerCase();
-  const rows = allRows.filter((row) => {
-    if (statusFilter && row.status !== statusFilter) return false;
-    if (!normalizedQuery) return true;
-    const haystack = `${row.customerName}${row.customerPhone}${row.customerArea}`.replace(/[^0-9a-zA-Z가-힣]/g, "").toLowerCase();
-    return haystack.includes(normalizedQuery);
-  });
+  const rows = allRows
+    .map((row) => ({ ...row, referral: referralByInquiry.get(row.id) ?? null }))
+    .filter((row) => {
+      if (statusFilter === "referred") return row.referral !== null;
+      if (statusFilter && row.status !== statusFilter) return false;
+      if (!normalizedQuery) return true;
+      const haystack = `${row.customerName}${row.customerPhone}${row.customerArea}`.replace(/[^0-9a-zA-Z가-힣]/g, "").toLowerCase();
+      return haystack.includes(normalizedQuery);
+    });
 
   const activeInquiryIds = allRows
     .filter((row) => row.status === "scheduled" || row.status === "completed")
@@ -114,6 +123,7 @@ export default async function AdminPage({
             {STATUS_ORDER.map((s) => (
               <option key={s} value={s}>{STATUS_LABEL[s]} ({counts[s] ?? 0})</option>
             ))}
+            <option value="referred">파트너 배정됨 ({referralRows.length})</option>
           </select>
           <button type="submit">검색</button>
           {(query || statusFilter) && <Link href="/admin" className="admin-filter-clear">필터 초기화</Link>}
@@ -150,7 +160,10 @@ export default async function AdminPage({
               <td>{row.customerArea || "-"}</td>
               <td className="admin-truncate">{row.interest || "-"}</td>
               <td>{row.source === "website" ? "웹 신청" : "직접 등록"}</td>
-              <td><span className={`admin-badge status-${row.status}`}>{STATUS_LABEL[row.status] ?? row.status}</span></td>
+              <td>
+                <span className={`admin-badge status-${row.status}`}>{STATUS_LABEL[row.status] ?? row.status}</span>
+                {row.referral && <span className="admin-badge admin-badge-partner" title={`${row.referral.partnerName}에게 배정됨`}>🤝 {row.referral.partnerName}</span>}
+              </td>
               <td>{row.quoteAmount ? `${row.quoteAmount.toLocaleString()}원` : "-"}</td>
               <td>{row.scheduledAt ? formatDate(row.scheduledAt) : "-"}</td>
               <td>
@@ -175,6 +188,7 @@ export default async function AdminPage({
               <strong>{row.customerName}</strong>
               <span className={`admin-badge status-${row.status}`}>{STATUS_LABEL[row.status] ?? row.status}</span>
             </div>
+            {row.referral && <p className="admin-mobile-card-meta">🤝 {row.referral.partnerName}에게 배정됨</p>}
             <p className="admin-mobile-card-meta">{row.customerPhone} · {row.customerArea || "지역 미입력"}</p>
             <p className="admin-mobile-card-meta admin-truncate">{row.interest || "-"}</p>
             <div className="admin-mobile-card-bottom">
