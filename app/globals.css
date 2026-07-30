@@ -124,6 +124,12 @@ footer { padding:45px clamp(24px,5vw,78px) 68px; background:#f3f0e8; display:gri
 .admin-review-item { padding:14px 16px; background:#f8f7f3; border-radius:8px; display:flex; flex-direction:column; gap:10px; }
 .admin-review-item-head { display:flex; align-items:center; gap:10px; }
 .admin-review-featured-toggle { align-self:flex-start; }
+.admin-range-active { font-weight:800; color:var(--green)!important; text-decoration:underline; }
+.admin-funnel-bars { display:flex; flex-direction:column; gap:16px; }
+.admin-funnel-row { display:flex; flex-direction:column; gap:6px; }
+.admin-funnel-label { display:flex; justify-content:space-between; align-items:baseline; font-size:13px; font-weight:700; }
+.admin-funnel-track { height:14px; background:#eef1ee; border-radius:7px; overflow:hidden; }
+.admin-funnel-fill { height:100%; background:var(--green); border-radius:7px; transition:width .3s ease; }
 .admin-table { width:100%; border-collapse:collapse; background:#fff; border:1px solid var(--line); border-radius:10px; overflow:hidden; font-size:13px; }
 .admin-table th, .admin-table td { padding:11px 12px; border-bottom:1px solid var(--line); text-align:left; white-space:nowrap; }
 .admin-table th { background:#f6f4ee; font-size:11px; letter-spacing:.04em; color:#5c6a65; }
