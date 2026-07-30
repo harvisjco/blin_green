@@ -10,6 +10,7 @@ const NAV_ITEMS = [
   { href: "/admin/funnel", label: "전환 퍼널", icon: "🔻" },
   { href: "/admin/remarketing", label: "재구매 · 소개", icon: "🔁" },
   { href: "/admin/reviews", label: "후기 수집", icon: "⭐" },
+  { href: "/admin/partners", label: "파트너 네트워크", icon: "🤝" },
   { href: "/admin/products", label: "제품 · 단가", icon: "🏷" },
   { href: "/admin/insights", label: "AI 제안", icon: "✨" },
 ] as const;

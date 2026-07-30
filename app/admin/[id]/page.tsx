@@ -2,15 +2,26 @@ import { desc, eq } from "drizzle-orm";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getDb } from "../../../db";
-import { customers, inquiries, inquiryItems, inquiryNotes, inquiryStatusEvents, products } from "../../../db/schema";
+import {
+  customers,
+  inquiries,
+  inquiryItems,
+  inquiryNotes,
+  inquiryStatusEvents,
+  partnerReferrals,
+  partners,
+  products,
+} from "../../../db/schema";
 import {
   addInquiryItem,
   addInquiryNote,
+  referInquiryToPartner,
   removeInquiryItem,
   updateCustomerMemo,
   updateInquiryQuote,
   updateInquirySchedule,
   updateInquiryStatusForm,
+  updateReferralOutcome,
 } from "../actions";
 import { ActionForm } from "../ActionForm";
 import { ConfirmDeleteButton } from "../ConfirmDeleteButton";
@@ -70,6 +81,16 @@ export default async function AdminInquiryDetailPage({
     .orderBy(desc(inquiryItems.createdAt));
 
   const catalog = await db.select().from(products).where(eq(products.active, 1));
+
+  const [referral] = await db
+    .select()
+    .from(partnerReferrals)
+    .where(eq(partnerReferrals.inquiryId, inquiryId))
+    .limit(1);
+  const referredPartner = referral
+    ? (await db.select().from(partners).where(eq(partners.id, referral.partnerId)).limit(1))[0]
+    : null;
+  const activePartners = await db.select().from(partners).where(eq(partners.active, 1));
 
   const itemTotals = items.map((item) => ({
     ...item,
@@ -176,6 +197,47 @@ export default async function AdminInquiryDetailPage({
       <section className="admin-card">
         <h2>원 문의 내용</h2>
         <p className="admin-detail-text"><b>관심 제품/내용</b> {inquiry.interest || "-"}</p>
+      </section>
+
+      <section className="admin-card">
+        <h2>파트너 배정</h2>
+        {referral ? (
+          <>
+            <p className="admin-detail-text">
+              <b>{referredPartner?.name ?? "삭제된 파트너"}</b>에 {formatDate(referral.referredAt)} 배정됨
+            </p>
+            <FormToast action={updateReferralOutcome} className="admin-form-row" successMessage="배정 정보를 저장했습니다.">
+              <input type="hidden" name="referralId" value={referral.id} />
+              <input name="jobAmount" defaultValue={referral.jobAmount ?? ""} placeholder="시공금액(원)" inputMode="numeric" style={{ width: 130 }} />
+              <select name="feeStatus" defaultValue={referral.feeStatus}>
+                <option value="pending">정산 대기</option>
+                <option value="invoiced">청구함</option>
+                <option value="paid">정산 완료</option>
+              </select>
+              <input name="memo" defaultValue={referral.memo} placeholder="메모" style={{ width: 160 }} />
+              <button type="submit">저장</button>
+            </FormToast>
+            {referral.feeAmount !== null && (
+              <p className="admin-meta" style={{ marginTop: 8 }}>소개료 {referral.feeAmount.toLocaleString()}원</p>
+            )}
+          </>
+        ) : activePartners.length > 0 ? (
+          <FormToast action={referInquiryToPartner} className="admin-form-row" successMessage="파트너에게 배정했습니다.">
+            <input type="hidden" name="inquiryId" value={inquiryId} />
+            <select name="partnerId" required>
+              <option value="">파트너 선택</option>
+              {activePartners.map((p) => (
+                <option key={p.id} value={p.id}>{p.name} ({p.category}{p.areas ? ` · ${p.areas}` : ""})</option>
+              ))}
+            </select>
+            <input name="memo" placeholder="배정 메모 (선택)" style={{ width: 200 }} />
+            <button type="submit">배정</button>
+          </FormToast>
+        ) : (
+          <p className="admin-meta">
+            등록된 파트너가 없습니다. <Link href="/admin/partners">파트너 네트워크</Link>에서 먼저 등록해 주세요.
+          </p>
+        )}
       </section>
 
       <section className="admin-card">

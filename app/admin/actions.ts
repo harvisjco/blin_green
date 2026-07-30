@@ -3,7 +3,17 @@
 import { and, desc, eq, gte, ne } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { getDb } from "../../db";
-import { customers, inquiries, inquiryItems, inquiryNotes, inquiryReviews, inquiryStatusEvents, products } from "../../db/schema";
+import {
+  customers,
+  inquiries,
+  inquiryItems,
+  inquiryNotes,
+  inquiryReviews,
+  inquiryStatusEvents,
+  partnerReferrals,
+  partners,
+  products,
+} from "../../db/schema";
 import { itemAmount } from "./pricing";
 
 const STATUSES = ["new", "consulting", "quoted", "scheduled", "completed", "cancelled"] as const;
@@ -407,5 +417,144 @@ export async function toggleReviewFeatured(formData: FormData): Promise<ActionRe
   } catch (error) {
     logActionError("toggleReviewFeatured", error);
     return { ok: false, error: "상태 변경에 실패했습니다." };
+  }
+}
+
+// --- Partner network (referral pipeline) ---
+
+const FEE_TYPES = ["percent", "flat"] as const;
+const FEE_STATUSES = ["pending", "invoiced", "paid"] as const;
+export type FeeStatus = (typeof FEE_STATUSES)[number];
+
+export async function createPartner(formData: FormData): Promise<ActionResult> {
+  const name = String(formData.get("name") ?? "").trim();
+  const category = String(formData.get("category") ?? "").trim() || "커튼·블라인드";
+  const phone = String(formData.get("phone") ?? "").trim();
+  const areas = String(formData.get("areas") ?? "").trim();
+  const feeType = String(formData.get("feeType") ?? "percent");
+  const feeValue = Number(String(formData.get("feeValue") ?? "").replace(/[^0-9]/g, "")) || 0;
+  const memo = String(formData.get("memo") ?? "").trim();
+
+  if (!name) return { ok: false, error: "업체명을 입력해 주세요." };
+  if (!FEE_TYPES.includes(feeType as (typeof FEE_TYPES)[number])) {
+    return { ok: false, error: "잘못된 수수료 방식입니다." };
+  }
+
+  try {
+    const db = getDb();
+    await db.insert(partners).values({ name, category, phone, areas, feeType, feeValue, memo });
+    revalidatePath("/admin/partners");
+    return { ok: true };
+  } catch (error) {
+    logActionError("createPartner", error);
+    return { ok: false, error: "파트너 등록에 실패했습니다." };
+  }
+}
+
+export async function updatePartner(formData: FormData): Promise<ActionResult> {
+  const partnerId = Number(formData.get("partnerId"));
+  const phone = String(formData.get("phone") ?? "").trim();
+  const areas = String(formData.get("areas") ?? "").trim();
+  const feeType = String(formData.get("feeType") ?? "percent");
+  const feeValue = Number(String(formData.get("feeValue") ?? "").replace(/[^0-9]/g, "")) || 0;
+  const memo = String(formData.get("memo") ?? "").trim();
+  if (!partnerId) return { ok: false, error: "잘못된 요청입니다." };
+  if (!FEE_TYPES.includes(feeType as (typeof FEE_TYPES)[number])) {
+    return { ok: false, error: "잘못된 수수료 방식입니다." };
+  }
+
+  try {
+    const db = getDb();
+    await db.update(partners).set({ phone, areas, feeType, feeValue, memo }).where(eq(partners.id, partnerId));
+    revalidatePath("/admin/partners");
+    return { ok: true };
+  } catch (error) {
+    logActionError("updatePartner", error);
+    return { ok: false, error: "저장에 실패했습니다." };
+  }
+}
+
+export async function togglePartnerActive(formData: FormData): Promise<ActionResult> {
+  const partnerId = Number(formData.get("partnerId"));
+  const nextActive = String(formData.get("nextActive")) === "1";
+  if (!partnerId) return { ok: false, error: "잘못된 요청입니다." };
+
+  try {
+    const db = getDb();
+    await db.update(partners).set({ active: nextActive ? 1 : 0 }).where(eq(partners.id, partnerId));
+    revalidatePath("/admin/partners");
+    return { ok: true };
+  } catch (error) {
+    logActionError("togglePartnerActive", error);
+    return { ok: false, error: "상태 변경에 실패했습니다." };
+  }
+}
+
+function calculateFee(feeType: string, feeValue: number, jobAmount: number | null): number | null {
+  if (jobAmount === null) return null;
+  if (feeType === "flat") return feeValue;
+  return Math.round((jobAmount * feeValue) / 100);
+}
+
+export async function referInquiryToPartner(formData: FormData): Promise<ActionResult> {
+  const inquiryId = Number(formData.get("inquiryId"));
+  const partnerId = Number(formData.get("partnerId"));
+  const memo = String(formData.get("memo") ?? "").trim();
+  if (!inquiryId || !partnerId) return { ok: false, error: "파트너를 선택해 주세요." };
+
+  try {
+    const db = getDb();
+    const [existing] = await db
+      .select()
+      .from(partnerReferrals)
+      .where(eq(partnerReferrals.inquiryId, inquiryId))
+      .limit(1);
+    if (existing) return { ok: false, error: "이미 파트너에게 배정된 문의입니다." };
+
+    await db.insert(partnerReferrals).values({ inquiryId, partnerId, memo });
+    revalidatePath(`/admin/${inquiryId}`);
+    revalidatePath("/admin/partners");
+    return { ok: true };
+  } catch (error) {
+    logActionError("referInquiryToPartner", error);
+    return { ok: false, error: "배정에 실패했습니다." };
+  }
+}
+
+export async function updateReferralOutcome(formData: FormData): Promise<ActionResult> {
+  const referralId = Number(formData.get("referralId"));
+  const jobAmountRaw = String(formData.get("jobAmount") ?? "").trim();
+  const feeStatus = String(formData.get("feeStatus") ?? "pending");
+  const memo = String(formData.get("memo") ?? "").trim();
+  if (!referralId) return { ok: false, error: "잘못된 요청입니다." };
+  if (!FEE_STATUSES.includes(feeStatus as FeeStatus)) return { ok: false, error: "잘못된 상태 값입니다." };
+
+  const jobAmount = jobAmountRaw ? Number(jobAmountRaw.replace(/[^0-9]/g, "")) : null;
+
+  try {
+    const db = getDb();
+    const [referral] = await db.select().from(partnerReferrals).where(eq(partnerReferrals.id, referralId)).limit(1);
+    if (!referral) return { ok: false, error: "배정 기록을 찾을 수 없습니다." };
+    const [partner] = await db.select().from(partners).where(eq(partners.id, referral.partnerId)).limit(1);
+
+    const feeAmount = partner ? calculateFee(partner.feeType, partner.feeValue, jobAmount) : null;
+
+    await db
+      .update(partnerReferrals)
+      .set({
+        jobAmount,
+        feeAmount,
+        feeStatus,
+        memo,
+        paidAt: feeStatus === "paid" ? new Date().toISOString() : null,
+      })
+      .where(eq(partnerReferrals.id, referralId));
+
+    revalidatePath("/admin/partners");
+    revalidatePath(`/admin/${referral.inquiryId}`);
+    return { ok: true };
+  } catch (error) {
+    logActionError("updateReferralOutcome", error);
+    return { ok: false, error: "저장에 실패했습니다." };
   }
 }

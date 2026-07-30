@@ -101,3 +101,31 @@ export const inquiryReviews = sqliteTable("inquiry_reviews", {
   featured: integer("featured").notNull().default(0), // 1 if picked for the homepage reviews section
   createdAt: text("created_at").notNull().default(sql`CURRENT_TIMESTAMP`),
 });
+
+// External contractors/vendors that overflow or out-of-scope inquiries can be referred to.
+export const partners = sqliteTable("partners", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  name: text("name").notNull(), // business or contact name
+  category: text("category").notNull().default("커튼·블라인드"), // e.g. 커튼·블라인드, 마루, 도배, 조명
+  phone: text("phone").notNull().default(""),
+  areas: text("areas").notNull().default(""), // free-text service areas, comma separated
+  feeType: text("fee_type").notNull().default("percent"), // "percent" | "flat"
+  feeValue: integer("fee_value").notNull().default(0), // percent (0-100) or flat won amount, depending on feeType
+  memo: text("memo").notNull().default(""),
+  active: integer("active").notNull().default(1),
+  createdAt: text("created_at").notNull().default(sql`CURRENT_TIMESTAMP`),
+});
+
+// One inquiry referred to one partner, with the resulting referral fee lifecycle.
+export const partnerReferrals = sqliteTable("partner_referrals", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  inquiryId: integer("inquiry_id").notNull().references(() => inquiries.id).unique(),
+  partnerId: integer("partner_id").notNull().references(() => partners.id),
+  referredAt: text("referred_at").notNull().default(sql`CURRENT_TIMESTAMP`),
+  jobAmount: integer("job_amount"), // final job value reported by/confirmed with the partner, in won
+  feeAmount: integer("fee_amount"), // referral fee owed to blingreen, in won
+  feeStatus: text("fee_status").notNull().default("pending"), // pending | invoiced | paid
+  paidAt: text("paid_at"),
+  memo: text("memo").notNull().default(""),
+  createdAt: text("created_at").notNull().default(sql`CURRENT_TIMESTAMP`),
+});
