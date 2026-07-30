@@ -11,6 +11,10 @@ export type InquiryStatus = (typeof STATUSES)[number];
 
 export type ActionResult = { ok: true } | { ok: false; error: string };
 
+function logActionError(action: string, error: unknown) {
+  console.error(`[admin action failed] ${action}:`, error);
+}
+
 async function recalculateQuoteAmount(db: ReturnType<typeof getDb>, inquiryId: number) {
   const items = await db.select().from(inquiryItems).where(eq(inquiryItems.inquiryId, inquiryId));
   const total = items.reduce(
@@ -92,7 +96,8 @@ export async function createManualInquiry(formData: FormData): Promise<ActionRes
 
     revalidatePath("/admin");
     return { ok: true };
-  } catch {
+  } catch (error) {
+    logActionError("createManualInquiry", error);
     return { ok: false, error: "등록에 실패했습니다. 다시 시도해 주세요." };
   }
 }
@@ -121,7 +126,8 @@ export async function updateInquiryStatus(inquiryId: number, status: InquiryStat
     revalidatePath("/admin");
     revalidatePath("/admin/remarketing");
     return { ok: true };
-  } catch {
+  } catch (error) {
+    logActionError("updateInquiryStatus", error);
     return { ok: false, error: "상태 변경에 실패했습니다." };
   }
 }
@@ -149,7 +155,8 @@ export async function updateInquiryQuote(formData: FormData): Promise<ActionResu
       .where(eq(inquiries.id, inquiryId));
     revalidatePath(`/admin/${inquiryId}`);
     return { ok: true };
-  } catch {
+  } catch (error) {
+    logActionError("updateInquiryQuote", error);
     return { ok: false, error: "저장에 실패했습니다." };
   }
 }
@@ -168,7 +175,8 @@ export async function updateInquirySchedule(formData: FormData): Promise<ActionR
     revalidatePath(`/admin/${inquiryId}`);
     revalidatePath("/admin");
     return { ok: true };
-  } catch {
+  } catch (error) {
+    logActionError("updateInquirySchedule", error);
     return { ok: false, error: "일정 저장에 실패했습니다." };
   }
 }
@@ -184,7 +192,8 @@ export async function addInquiryNote(formData: FormData): Promise<ActionResult> 
     await db.insert(inquiryNotes).values({ inquiryId, author, content });
     revalidatePath(`/admin/${inquiryId}`);
     return { ok: true };
-  } catch {
+  } catch (error) {
+    logActionError("addInquiryNote", error);
     return { ok: false, error: "일지 추가에 실패했습니다." };
   }
 }
@@ -199,7 +208,8 @@ export async function updateCustomerMemo(formData: FormData): Promise<ActionResu
     await db.update(customers).set({ memo }).where(eq(customers.id, customerId));
     revalidatePath("/admin");
     return { ok: true };
-  } catch {
+  } catch (error) {
+    logActionError("updateCustomerMemo", error);
     return { ok: false, error: "메모 저장에 실패했습니다." };
   }
 }
@@ -218,7 +228,8 @@ export async function createProduct(formData: FormData): Promise<ActionResult> {
     await db.insert(products).values({ name, family, priceCents: price, costCents: cost });
     revalidatePath("/admin/products");
     return { ok: true };
-  } catch {
+  } catch (error) {
+    logActionError("createProduct", error);
     return { ok: false, error: "제품 등록에 실패했습니다." };
   }
 }
@@ -234,7 +245,8 @@ export async function updateProduct(formData: FormData): Promise<ActionResult> {
     await db.update(products).set({ priceCents: price, costCents: cost }).where(eq(products.id, productId));
     revalidatePath("/admin/products");
     return { ok: true };
-  } catch {
+  } catch (error) {
+    logActionError("updateProduct", error);
     return { ok: false, error: "저장에 실패했습니다." };
   }
 }
@@ -245,7 +257,8 @@ export async function toggleProductActive(productId: number, active: boolean): P
     await db.update(products).set({ active: active ? 1 : 0 }).where(eq(products.id, productId));
     revalidatePath("/admin/products");
     return { ok: true };
-  } catch {
+  } catch (error) {
+    logActionError("toggleProductActive", error);
     return { ok: false, error: "상태 변경에 실패했습니다." };
   }
 }
@@ -301,7 +314,8 @@ export async function addInquiryItem(formData: FormData): Promise<ActionResult> 
     revalidatePath(`/admin/${inquiryId}`);
     revalidatePath("/admin");
     return { ok: true };
-  } catch {
+  } catch (error) {
+    logActionError("addInquiryItem", error);
     return { ok: false, error: "품목 추가에 실패했습니다." };
   }
 }
@@ -318,7 +332,8 @@ export async function removeInquiryItem(formData: FormData): Promise<ActionResul
     revalidatePath(`/admin/${inquiryId}`);
     revalidatePath("/admin");
     return { ok: true };
-  } catch {
+  } catch (error) {
+    logActionError("removeInquiryItem", error);
     return { ok: false, error: "삭제에 실패했습니다." };
   }
 }
@@ -346,7 +361,8 @@ export async function markReviewRequested(formData: FormData): Promise<ActionRes
     revalidatePath("/admin/reviews");
     revalidatePath(`/admin/${inquiryId}`);
     return { ok: true };
-  } catch {
+  } catch (error) {
+    logActionError("markReviewRequested", error);
     return { ok: false, error: "요청 표시에 실패했습니다." };
   }
 }
@@ -368,7 +384,8 @@ export async function saveReceivedReview(formData: FormData): Promise<ActionResu
     revalidatePath("/admin/reviews");
     revalidatePath(`/admin/${inquiryId}`);
     return { ok: true };
-  } catch {
+  } catch (error) {
+    logActionError("saveReceivedReview", error);
     return { ok: false, error: "후기 저장에 실패했습니다." };
   }
 }
@@ -387,7 +404,8 @@ export async function toggleReviewFeatured(formData: FormData): Promise<ActionRe
       .where(eq(inquiryReviews.id, row.id));
     revalidatePath("/admin/reviews");
     return { ok: true };
-  } catch {
+  } catch (error) {
+    logActionError("toggleReviewFeatured", error);
     return { ok: false, error: "상태 변경에 실패했습니다." };
   }
 }

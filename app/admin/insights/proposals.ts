@@ -242,4 +242,30 @@ export const proposals: Proposal[] = [
       "문자 발송 기능(SMS API 연동)이 선행되어야 실효성이 큼 — 지금은 상담 완료 알림도 없는 상태",
     ],
   },
+  {
+    id: "d1-backup-routine",
+    title: "D1 정기 백업 — 운영 데이터 유실 대비",
+    status: "ready",
+    effort: "낮음",
+    impact: "높음",
+    summary:
+      "고객·문의·견적 데이터가 전부 D1(site-creator-d1) 하나에 들어있습니다. Cloudflare D1은 Time Travel 기능으로 최근 30일 이내 특정 시점 복원이 자동으로 되지만, 그 이후 시점이나 '실수로 지운 데이터 하나만 복구' 같은 상황엔 별도 export 백업이 있는 게 안전합니다.",
+    benefits: [
+      "관리자의 실수(잘못된 삭제, 잘못된 마이그레이션)로부터 최종 안전망 확보",
+      "Time Travel(30일)을 넘어선 장기 보관 백업 확보",
+      "CSV 내보내기와 달리 D1 export는 스키마+전체 데이터를 그대로 복원 가능한 형태로 저장",
+    ],
+    howItWorks:
+      "wrangler CLI의 `d1 export` 명령으로 D1 전체를 .sql 파일로 내려받습니다. 한 달에 한 번 정도, 또는 큰 변경(마이그레이션) 직전에 실행해 로컬이나 클라우드 저장소에 보관합니다.",
+    steps: [
+      "터미널에서 `npx wrangler d1 export site-creator-d1 --remote --output=backup-$(날짜).sql` 실행",
+      "생성된 .sql 파일을 프로젝트 폴더 밖의 안전한 곳(개인 클라우드 드라이브 등)에 보관 — 코드 저장소(git)에는 고객 개인정보가 담기므로 커밋하지 않음",
+      "복원이 필요하면 `npx wrangler d1 execute site-creator-d1 --remote --file=backup-파일.sql`로 새 데이터베이스에 적용",
+      "긴급 복구는 백업 파일 없이도 `npx wrangler d1 time-travel restore site-creator-d1 --bookmark=<시점>`으로 최근 30일 내 임의 시점으로 즉시 되돌릴 수 있음(이미 사용 가능, 별도 설정 불필요)",
+    ],
+    caveats: [
+      "이 항목은 자동화된 스케줄러가 아니라 '운영자가 주기적으로 실행하는 수동 루틴'입니다. 완전 자동화하려면 Cloudflare Cron Trigger + Worker로 주기 실행하는 구조가 추가로 필요합니다.",
+      "백업 파일에는 고객 이름·전화번호가 그대로 담기니 저장 위치 접근 권한에 주의하세요.",
+    ],
+  },
 ];

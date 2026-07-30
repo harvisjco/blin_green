@@ -57,7 +57,8 @@ export async function submitConsultation(
     await db.insert(inquiryStatusEvents).values({ inquiryId: inquiry.id, fromStatus: null, toStatus: "new" });
 
     return { ok: true };
-  } catch {
+  } catch (error) {
+    console.error("[submitConsultation failed]", error);
     return { ok: false, error: "신청 접수 중 문제가 발생했어요. 전화로 문의해 주세요." };
   }
 }
