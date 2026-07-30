@@ -43,6 +43,23 @@ export const metadata: Metadata = {
   },
 };
 
+const jsonLd = {
+  "@context": "https://schema.org",
+  "@type": "HomeAndConstructionBusiness",
+  name: "블린그린",
+  description,
+  url: siteUrl,
+  image: `${siteUrl}/hero-livingroom.png`,
+  telephone: "+82-10-4951-8294",
+  areaServed: ["김포", "검단", "청라", "송도", "인천"],
+  priceRange: "무료 상담",
+  sameAs: [
+    "https://www.instagram.com/blin_green/",
+    "https://www.youtube.com/@블린그린-blingreen",
+    "https://m.blog.naver.com/PostList.naver?blogId=blingreen",
+  ],
+};
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -53,6 +70,10 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        />
         {children}
       </body>
     </html>
