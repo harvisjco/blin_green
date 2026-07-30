@@ -2,7 +2,7 @@
 
 import { eq } from "drizzle-orm";
 import { getDb } from "../db";
-import { consultations, customers, inquiries } from "../db/schema";
+import { consultations, customers, inquiries, inquiryStatusEvents } from "../db/schema";
 
 export type SubmitConsultationResult =
   | { ok: true }
@@ -44,13 +44,17 @@ export async function submitConsultation(
       ? existingCustomer.id
       : (await db.insert(customers).values({ name, phone, area }).returning())[0].id;
 
-    await db.insert(inquiries).values({
-      customerId,
-      consultationId: consultation.id,
-      source: "website",
-      interest: message,
-      quoteNote: detail,
-    });
+    const [inquiry] = await db
+      .insert(inquiries)
+      .values({
+        customerId,
+        consultationId: consultation.id,
+        source: "website",
+        interest: message,
+        quoteNote: detail,
+      })
+      .returning();
+    await db.insert(inquiryStatusEvents).values({ inquiryId: inquiry.id, fromStatus: null, toStatus: "new" });
 
     return { ok: true };
   } catch {
