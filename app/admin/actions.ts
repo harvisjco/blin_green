@@ -3,7 +3,7 @@
 import { and, desc, eq, gte, ne } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { getDb } from "../../db";
-import { customers, inquiries, inquiryItems, inquiryNotes, inquiryStatusEvents, products } from "../../db/schema";
+import { customers, inquiries, inquiryItems, inquiryNotes, inquiryReviews, inquiryStatusEvents, products } from "../../db/schema";
 import { itemAmount } from "./pricing";
 
 const STATUSES = ["new", "consulting", "quoted", "scheduled", "completed", "cancelled"] as const;
@@ -317,5 +317,74 @@ export async function removeInquiryItem(formData: FormData): Promise<ActionResul
     return { ok: true };
   } catch {
     return { ok: false, error: "삭제에 실패했습니다." };
+  }
+}
+
+// --- Reviews ---
+
+async function ensureReviewRow(db: ReturnType<typeof getDb>, inquiryId: number) {
+  const [existing] = await db.select().from(inquiryReviews).where(eq(inquiryReviews.inquiryId, inquiryId)).limit(1);
+  if (existing) return existing;
+  const [created] = await db.insert(inquiryReviews).values({ inquiryId }).returning();
+  return created;
+}
+
+export async function markReviewRequested(formData: FormData): Promise<ActionResult> {
+  const inquiryId = Number(formData.get("inquiryId"));
+  if (!inquiryId) return { ok: false, error: "잘못된 요청입니다." };
+
+  try {
+    const db = getDb();
+    const row = await ensureReviewRow(db, inquiryId);
+    await db
+      .update(inquiryReviews)
+      .set({ requestedAt: new Date().toISOString() })
+      .where(eq(inquiryReviews.id, row.id));
+    revalidatePath("/admin/reviews");
+    revalidatePath(`/admin/${inquiryId}`);
+    return { ok: true };
+  } catch {
+    return { ok: false, error: "요청 표시에 실패했습니다." };
+  }
+}
+
+export async function saveReceivedReview(formData: FormData): Promise<ActionResult> {
+  const inquiryId = Number(formData.get("inquiryId"));
+  const reviewText = String(formData.get("reviewText") ?? "").trim();
+  const reviewUrl = String(formData.get("reviewUrl") ?? "").trim();
+  if (!inquiryId) return { ok: false, error: "잘못된 요청입니다." };
+  if (!reviewText && !reviewUrl) return { ok: false, error: "후기 내용 또는 링크를 입력해 주세요." };
+
+  try {
+    const db = getDb();
+    const row = await ensureReviewRow(db, inquiryId);
+    await db
+      .update(inquiryReviews)
+      .set({ reviewText, reviewUrl, receivedAt: row.receivedAt ?? new Date().toISOString() })
+      .where(eq(inquiryReviews.id, row.id));
+    revalidatePath("/admin/reviews");
+    revalidatePath(`/admin/${inquiryId}`);
+    return { ok: true };
+  } catch {
+    return { ok: false, error: "후기 저장에 실패했습니다." };
+  }
+}
+
+export async function toggleReviewFeatured(formData: FormData): Promise<ActionResult> {
+  const inquiryId = Number(formData.get("inquiryId"));
+  const nextFeatured = String(formData.get("nextFeatured")) === "1";
+  if (!inquiryId) return { ok: false, error: "잘못된 요청입니다." };
+
+  try {
+    const db = getDb();
+    const row = await ensureReviewRow(db, inquiryId);
+    await db
+      .update(inquiryReviews)
+      .set({ featured: nextFeatured ? 1 : 0 })
+      .where(eq(inquiryReviews.id, row.id));
+    revalidatePath("/admin/reviews");
+    return { ok: true };
+  } catch {
+    return { ok: false, error: "상태 변경에 실패했습니다." };
   }
 }

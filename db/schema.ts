@@ -89,3 +89,15 @@ export const inquiryItems = sqliteTable("inquiry_items", {
   unitCost: integer("unit_cost").notNull().default(0), // snapshot of cost per m2 at quote time
   createdAt: text("created_at").notNull().default(sql`CURRENT_TIMESTAMP`),
 });
+
+// Tracks the post-completion review request/collection workflow for an inquiry.
+export const inquiryReviews = sqliteTable("inquiry_reviews", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  inquiryId: integer("inquiry_id").notNull().references(() => inquiries.id).unique(),
+  requestedAt: text("requested_at"), // when the admin marked the review request as sent
+  receivedAt: text("received_at"), // when a review actually came back
+  reviewText: text("review_text").notNull().default(""),
+  reviewUrl: text("review_url").notNull().default(""), // link to the live post if published elsewhere
+  featured: integer("featured").notNull().default(0), // 1 if picked for the homepage reviews section
+  createdAt: text("created_at").notNull().default(sql`CURRENT_TIMESTAMP`),
+});

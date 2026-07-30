@@ -8,6 +8,7 @@ const NAV_ITEMS = [
   { href: "/admin/calendar", label: "시공 일정", icon: "📅" },
   { href: "/admin/channels", label: "채널 분석", icon: "📊" },
   { href: "/admin/remarketing", label: "재구매 · 소개", icon: "🔁" },
+  { href: "/admin/reviews", label: "후기 수집", icon: "⭐" },
   { href: "/admin/products", label: "제품 · 단가", icon: "🏷" },
   { href: "/admin/insights", label: "AI 제안", icon: "✨" },
 ] as const;

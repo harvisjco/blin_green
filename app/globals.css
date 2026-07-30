@@ -120,6 +120,10 @@ footer { padding:45px clamp(24px,5vw,78px) 68px; background:#f3f0e8; display:gri
 .admin-utm-examples li { padding:10px 12px; background:#f8f7f3; border-radius:8px; font-size:12px; }
 .admin-utm-examples b { display:block; margin-bottom:4px; color:#3a4542; }
 .admin-utm-examples code { display:block; word-break:break-all; color:#1d5e58; font-size:11px; }
+.admin-review-list { display:flex; flex-direction:column; gap:14px; margin-top:14px; }
+.admin-review-item { padding:14px 16px; background:#f8f7f3; border-radius:8px; display:flex; flex-direction:column; gap:10px; }
+.admin-review-item-head { display:flex; align-items:center; gap:10px; }
+.admin-review-featured-toggle { align-self:flex-start; }
 .admin-table { width:100%; border-collapse:collapse; background:#fff; border:1px solid var(--line); border-radius:10px; overflow:hidden; font-size:13px; }
 .admin-table th, .admin-table td { padding:11px 12px; border-bottom:1px solid var(--line); text-align:left; white-space:nowrap; }
 .admin-table th { background:#f6f4ee; font-size:11px; letter-spacing:.04em; color:#5c6a65; }

@@ -43,6 +43,13 @@
       "when": 1785349166184,
       "tag": "0005_groovy_ezekiel_stane",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "6",
+      "when": 1785373099994,
+      "tag": "0006_late_prodigy",
+      "breakpoints": true
     }
   ]
 }
