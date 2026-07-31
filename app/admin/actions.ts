@@ -384,6 +384,7 @@ export async function saveReceivedReview(formData: FormData): Promise<ActionResu
   const reviewUrl = String(formData.get("reviewUrl") ?? "").trim();
   if (!inquiryId) return { ok: false, error: "잘못된 요청입니다." };
   if (!reviewText && !reviewUrl) return { ok: false, error: "후기 내용 또는 링크를 입력해 주세요." };
+  if (!isSafeHttpUrl(reviewUrl)) return { ok: false, error: "후기 링크는 http:// 또는 https:// 로 시작하는 주소여야 합니다." };
 
   try {
     const db = getDb();
