@@ -1,10 +1,10 @@
-// Mood-reference styling guide, shared by the homepage summary and the
+// Mood + color-tone reference gallery, shared by the homepage summary and the
 // in-person consultation portfolio (/portfolio).
 //
 // These are NOT claims that blingreen installed at any named venue — copy
 // must stay in "이런 무드를 원하신다면" framing, never "우리가 시공한 곳" framing.
-// Images are free-license stock photos chosen to evoke the mood, not photos
-// of any specific real venue.
+// Images are free-license stock photos chosen to evoke the mood/color, not
+// photos of any specific real venue or product brand.
 export const moodGuides = [
   {
     id: "hotel-lobby",
@@ -13,6 +13,7 @@ export const moodGuides = [
     description: "고급 호텔 로비에서 느껴지는 풍성하고 격식 있는 분위기를 참고했습니다. 두 겹의 커튼이 낮과 밤 모두 우아한 인상을 만듭니다.",
     productIds: ["double", "sheer"],
     tone: "mood-lobby",
+    category: "mood" as const,
     image: "https://images.unsplash.com/photo-1759038086832-795644825e3a?auto=format&fit=crop&w=1200&q=80",
     imageCredit: "Unsplash",
   },
@@ -23,6 +24,7 @@ export const moodGuides = [
     description: "여행지 호텔 객실처럼 완전한 암막과 차분함을 원할 때 참고하는 조합입니다. 숙면과 아늑함에 집중했습니다.",
     productIds: ["blackout", "honeycomb"],
     tone: "mood-bedroom",
+    category: "mood" as const,
     image: "https://images.unsplash.com/photo-1611892440504-42a792e24d32?auto=format&fit=crop&w=1200&q=80",
     imageCredit: "Unsplash",
   },
@@ -33,6 +35,7 @@ export const moodGuides = [
     description: "파리의 작은 카페에서 느껴지는 내추럴하고 따뜻한 질감을 참고했습니다. 린넨과 우드의 조합이 편안한 인상을 만듭니다.",
     productIds: ["drape", "wood"],
     tone: "mood-cafe",
+    category: "mood" as const,
     image: "https://images.unsplash.com/photo-1414235077428-338989a2e8c0?auto=format&fit=crop&w=1200&q=80",
     imageCredit: "Unsplash",
   },
@@ -43,7 +46,63 @@ export const moodGuides = [
     description: "군더더기 없는 리조트 라운지처럼 깔끔하고 개방적인 인상을 원할 때 참고하는 조합입니다. 넓은 창을 시원하게 정리합니다.",
     productIds: ["roller", "vertical"],
     tone: "mood-resort",
+    category: "mood" as const,
     image: "https://images.unsplash.com/photo-1724582586529-62622e50c0b3?auto=format&fit=crop&w=1200&q=80",
+    imageCredit: "Unsplash",
+  },
+  {
+    id: "color-white",
+    label: "화이트 · 베이지 톤",
+    kicker: "WHITE & BEIGE TONE",
+    description: "가장 무난하고 밝은 톤으로, 어떤 인테리어에도 무리 없이 어울립니다. 채광을 부드럽게 살리고 싶은 공간에 잘 맞습니다.",
+    productIds: ["sheer", "drape", "combi"],
+    tone: "mood-color-white",
+    category: "color" as const,
+    image: "https://images.unsplash.com/photo-1611822506999-793d04b7ddd8?auto=format&fit=crop&w=1200&q=80",
+    imageCredit: "Unsplash",
+  },
+  {
+    id: "color-gray",
+    label: "그레이 톤",
+    kicker: "GRAY TONE",
+    description: "차분하고 도시적인 인상을 주는 톤입니다. 모던한 가구, 콘크리트·무채색 인테리어와 특히 잘 어울립니다.",
+    productIds: ["roller", "aluminum"],
+    tone: "mood-color-gray",
+    category: "color" as const,
+    image: "https://images.unsplash.com/photo-1776261293170-66fd3b09273e?auto=format&fit=crop&w=1200&q=80",
+    imageCredit: "Unsplash",
+  },
+  {
+    id: "color-dark",
+    label: "다크 · 블랙 톤",
+    kicker: "DARK & BLACK TONE",
+    description: "짙은 색감으로 공간에 무게감과 대비를 더합니다. 완전 암막이 필요한 침실, 미디어룸에 잘 어울립니다.",
+    productIds: ["blackout", "double"],
+    tone: "mood-color-dark",
+    category: "color" as const,
+    image: "https://images.unsplash.com/photo-1674951780257-58bb3b7038e5?auto=format&fit=crop&w=1200&q=80",
+    imageCredit: "Unsplash",
+  },
+  {
+    id: "color-wood",
+    label: "우드 톤",
+    kicker: "WOOD TONE",
+    description: "나무의 결과 온기가 느껴지는 톤입니다. 우드 가구, 내추럴한 인테리어와 자연스럽게 어우러집니다.",
+    productIds: ["wood", "honeycomb"],
+    tone: "mood-color-wood",
+    category: "color" as const,
+    image: "https://images.unsplash.com/photo-1582265214834-c02ec775947b?auto=format&fit=crop&w=1200&q=80",
+    imageCredit: "Unsplash",
+  },
+  {
+    id: "color-green",
+    label: "그린 톤",
+    kicker: "GREEN TONE",
+    description: "싱그럽고 차분한 포인트 컬러입니다. 플랜테리어, 내추럴한 톤의 공간에 개성을 더하고 싶을 때 참고하세요.",
+    productIds: ["drape", "vertical"],
+    tone: "mood-color-green",
+    category: "color" as const,
+    image: "https://images.unsplash.com/photo-1771039621721-0230d18473b4?auto=format&fit=crop&w=1200&q=80",
     imageCredit: "Unsplash",
   },
 ] as const;
