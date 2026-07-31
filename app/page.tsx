@@ -75,16 +75,21 @@ export default function Home() {
   const [photoNames, setPhotoNames] = useState<string[]>([]);
   const [messageDraft, setMessageDraft] = useState<string | null>(null);
   const [messageDirty, setMessageDirty] = useState(false);
+  const [referredMood, setReferredMood] = useState<string | null>(null);
   const filteredProducts = useMemo(() => selectedNeed === "전체" ? guideProducts : guideProducts.filter((item) => item.tags.includes(selectedNeed)), [selectedNeed]);
   const featuredProduct = guideProducts.find((item) => item.id === selectedProduct) ?? guideProducts[3];
   const diagnosisComplete = diagnosisStep === diagnosisQuestions.length;
   const diagnosisResults = useMemo(() => !diagnosisComplete ? [] : [...guideProducts].map((product) => ({ product, score: (product.best.includes(diagnosisAnswers.room) ? 4 : 0) + (product.tags.includes(diagnosisAnswers.priority as Need) ? 3 : 0) + (moodMatches[diagnosisAnswers.mood]?.includes(product.id) ? 2 : 0) })).sort((a, b) => b.score - a.score).slice(0, 3).map((item) => item.product), [diagnosisAnswers, diagnosisComplete]);
-  const consultationSummary = diagnosisComplete ? `진단 결과 · ${diagnosisAnswers.room} / ${diagnosisAnswers.priority} / ${diagnosisAnswers.mood}\n추천 제품 · ${diagnosisResults.map((product) => product.name).join(", ")}` : "제품 진단 전 · 상담을 통해 공간에 맞는 제품을 함께 추천받고 싶어요.";
+  const consultationSummary = (diagnosisComplete ? `진단 결과 · ${diagnosisAnswers.room} / ${diagnosisAnswers.priority} / ${diagnosisAnswers.mood}\n추천 제품 · ${diagnosisResults.map((product) => product.name).join(", ")}` : "제품 진단 전 · 상담을 통해 공간에 맞는 제품을 함께 추천받고 싶어요.") + (referredMood ? `\n관심 무드 · ${referredMood}` : "");
   const messageValue = messageDraft ?? consultationSummary;
   function chooseDiagnosis(option: string) { const question = diagnosisQuestions[diagnosisStep]; setDiagnosisAnswers((current) => ({ ...current, [question.key]: option })); setDiagnosisStep((current) => current + 1); }
 
   useEffect(() => { captureAttribution(); }, []);
-  useEffect(() => { if (diagnosisComplete && !messageDirty) setMessageDraft(consultationSummary); }, [diagnosisComplete, consultationSummary, messageDirty]);
+  useEffect(() => {
+    const mood = new URLSearchParams(window.location.search).get("mood");
+    if (mood) setReferredMood(mood);
+  }, []);
+  useEffect(() => { if ((diagnosisComplete || referredMood) && !messageDirty) setMessageDraft(consultationSummary); }, [diagnosisComplete, referredMood, consultationSummary, messageDirty]);
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();

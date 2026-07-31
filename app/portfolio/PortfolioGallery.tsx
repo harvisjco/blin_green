@@ -72,6 +72,14 @@ export default function PortfolioGallery() {
                   </div>
                 ))}
               </div>
+              <a
+                className="portfolio-card-cta"
+                href={`/?mood=${encodeURIComponent(mood.label)}#reservation`}
+                target="_blank"
+                rel="noreferrer"
+              >
+                이 무드로 상담하기 <span>↗</span>
+              </a>
             </div>
           </article>
         ))}
