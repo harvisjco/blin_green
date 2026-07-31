@@ -1,12 +1,20 @@
-import { desc, eq } from "drizzle-orm";
+import { asc, desc, eq } from "drizzle-orm";
 import { getDb } from "../../../db";
-import { consultations, inquiries } from "../../../db/schema";
+import { consultations, inquiries, inquiryStatusEvents } from "../../../db/schema";
 import { resolveChannel } from "../channel";
 
 export const dynamic = "force-dynamic";
 
 const WON_STATUSES = new Set(["scheduled", "completed"]);
 const LOST_STATUSES = new Set(["cancelled"]);
+
+const FUNNEL_STAGES = [
+  { status: "new", label: "신규" },
+  { status: "consulting", label: "상담중" },
+  { status: "quoted", label: "견적완료" },
+  { status: "scheduled", label: "시공예정" },
+  { status: "completed", label: "완료" },
+] as const;
 
 export default async function AdminChannelsPage() {
   const db = getDb();
@@ -93,6 +101,62 @@ export default async function AdminChannelsPage() {
     referrer: r.referrer,
   }) === "직접 방문/URL 입력").length;
 
+  // Channel × funnel cross-tab: which channels actually convert to a completed job,
+  // not just which channels bring in the most raw inquiries.
+  const channelByInquiryId = new Map<number, string>();
+  for (const row of websiteRows) {
+    channelByInquiryId.set(row.inquiryId, resolveChannel({
+      source: "website",
+      utmSource: row.utmSource,
+      utmMedium: row.utmMedium,
+      referrer: row.referrer,
+    }));
+  }
+
+  const statusEvents = await db
+    .select({ inquiryId: inquiryStatusEvents.inquiryId, toStatus: inquiryStatusEvents.toStatus, createdAt: inquiryStatusEvents.createdAt })
+    .from(inquiryStatusEvents)
+    .orderBy(asc(inquiryStatusEvents.createdAt));
+
+  const reachedStagesByInquiry = new Map<number, Set<string>>();
+  for (const event of statusEvents) {
+    if (!channelByInquiryId.has(event.inquiryId)) continue; // only website-sourced inquiries are channel-attributed
+    let stages = reachedStagesByInquiry.get(event.inquiryId);
+    if (!stages) {
+      stages = new Set();
+      reachedStagesByInquiry.set(event.inquiryId, stages);
+    }
+    stages.add(event.toStatus);
+  }
+
+  const funnelByChannel = new Map<string, Map<string, number>>();
+  for (const [inquiryId, channel] of channelByInquiryId) {
+    let stageCounts = funnelByChannel.get(channel);
+    if (!stageCounts) {
+      stageCounts = new Map();
+      funnelByChannel.set(channel, stageCounts);
+    }
+    const reached = reachedStagesByInquiry.get(inquiryId) ?? new Set();
+    for (const stage of FUNNEL_STAGES) {
+      if (reached.has(stage.status)) {
+        stageCounts.set(stage.status, (stageCounts.get(stage.status) ?? 0) + 1);
+      }
+    }
+  }
+
+  const channelFunnelRows = channelStats
+    .filter((stat) => funnelByChannel.has(stat.channel))
+    .map((stat) => {
+      const stageCounts = funnelByChannel.get(stat.channel)!;
+      return {
+        channel: stat.channel,
+        total: stat.total,
+        stageCounts: FUNNEL_STAGES.map((stage) => stageCounts.get(stage.status) ?? 0),
+        completionRate: stat.total > 0 ? Math.round(((stageCounts.get("completed") ?? 0) / stat.total) * 100) : 0,
+      };
+    })
+    .sort((a, b) => b.completionRate - a.completionRate);
+
   return (
     <main className="admin">
       <header className="admin-header">
@@ -152,6 +216,36 @@ export default async function AdminChannelsPage() {
           )}
         </tbody>
       </table>
+
+      <section className="admin-card">
+        <h2>채널별 전환 퍼널</h2>
+        <p className="admin-detail-text">
+          어느 채널이 문의만 많이 만드는지, 실제 완료(시공)까지 이어지는지 비교합니다. 완료 전환율이 높은 채널에 마케팅을 더 집중해 보세요.
+        </p>
+        <table className="admin-table">
+          <thead>
+            <tr>
+              <th>채널</th>
+              <th>총 문의</th>
+              {FUNNEL_STAGES.map((stage) => <th key={stage.status}>{stage.label}</th>)}
+              <th>완료 전환율</th>
+            </tr>
+          </thead>
+          <tbody>
+            {channelFunnelRows.map((row) => (
+              <tr key={row.channel}>
+                <td><strong>{row.channel}</strong></td>
+                <td>{row.total}건</td>
+                {row.stageCounts.map((count, i) => <td key={FUNNEL_STAGES[i].status}>{count}건</td>)}
+                <td><strong>{row.completionRate}%</strong></td>
+              </tr>
+            ))}
+            {channelFunnelRows.length === 0 && (
+              <tr><td colSpan={FUNNEL_STAGES.length + 3} className="admin-empty">아직 상태 변경 이력이 있는 웹 문의가 없습니다.</td></tr>
+            )}
+          </tbody>
+        </table>
+      </section>
 
       <section className="admin-card">
         <h2>UTM 링크 예시</h2>
