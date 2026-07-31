@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { moodGuides } from "../moodGuides";
 import { guideProducts } from "../guideProducts";
 
@@ -16,8 +16,11 @@ const filters = [
 
 type FilterKey = (typeof filters)[number]["key"];
 
+type Lightbox = { title: string; images: readonly string[]; index: number };
+
 export default function PortfolioGallery() {
   const [activeFilter, setActiveFilter] = useState<FilterKey>("all");
+  const [lightbox, setLightbox] = useState<Lightbox | null>(null);
 
   const galleryResolved = useMemo(
     () =>
@@ -35,6 +38,29 @@ export default function PortfolioGallery() {
     if (activeFilter === "mood") return galleryResolved.filter((item) => item.category === "mood");
     return galleryResolved.filter((item) => item.id === activeFilter);
   }, [activeFilter, galleryResolved]);
+
+  function openLightbox(title: string, images: readonly string[]) {
+    setLightbox({ title, images, index: 0 });
+  }
+
+  useEffect(() => {
+    if (!lightbox) return;
+    function handleKey(event: KeyboardEvent) {
+      if (event.key === "Escape") setLightbox(null);
+      if (event.key === "ArrowLeft") stepLightbox(-1);
+      if (event.key === "ArrowRight") stepLightbox(1);
+    }
+    window.addEventListener("keydown", handleKey);
+    return () => window.removeEventListener("keydown", handleKey);
+  }, [lightbox]);
+
+  function stepLightbox(delta: number) {
+    setLightbox((current) => {
+      if (!current) return current;
+      const next = (current.index + delta + current.images.length) % current.images.length;
+      return { ...current, index: next };
+    });
+  }
 
   return (
     <>
@@ -56,10 +82,17 @@ export default function PortfolioGallery() {
       <div className="portfolio-grid">
         {visibleItems.map((mood) => (
           <article className="portfolio-card" key={mood.id}>
-            <div className="portfolio-card-art" style={{ backgroundImage: `url(${mood.image})` }}>
+            <button
+              type="button"
+              className="portfolio-card-art"
+              style={{ backgroundImage: `url(${mood.image})` }}
+              onClick={() => openLightbox(mood.label, mood.gallery)}
+              aria-label={`${mood.label} 사진 크게 보기`}
+            >
               <span className="portfolio-card-badge">{mood.category === "mood" ? "무드 참고" : "색상 참고"}</span>
+              {mood.gallery.length > 1 && <span className="portfolio-card-count">사진 {mood.gallery.length}장 · 눌러서 보기</span>}
               <span className="portfolio-card-credit">사진 · {mood.imageCredit}</span>
-            </div>
+            </button>
             <div className="portfolio-card-body">
               <p className="portfolio-card-kicker">{mood.kicker}</p>
               <h2>{mood.label}</h2>
@@ -84,6 +117,31 @@ export default function PortfolioGallery() {
           </article>
         ))}
       </div>
+
+      {lightbox && (
+        <div className="portfolio-lightbox" role="dialog" aria-modal="true" aria-label={`${lightbox.title} 사진`} onClick={() => setLightbox(null)}>
+          <button type="button" className="portfolio-lightbox-close" onClick={() => setLightbox(null)} aria-label="닫기">
+            ✕
+          </button>
+          <div className="portfolio-lightbox-body" onClick={(event) => event.stopPropagation()}>
+            {lightbox.images.length > 1 && (
+              <button type="button" className="portfolio-lightbox-nav prev" onClick={() => stepLightbox(-1)} aria-label="이전 사진">
+                ‹
+              </button>
+            )}
+            <img src={lightbox.images[lightbox.index]} alt={`${lightbox.title} 참고 사진`} className="portfolio-lightbox-image" />
+            {lightbox.images.length > 1 && (
+              <button type="button" className="portfolio-lightbox-nav next" onClick={() => stepLightbox(1)} aria-label="다음 사진">
+                ›
+              </button>
+            )}
+          </div>
+          <div className="portfolio-lightbox-caption">
+            {lightbox.title}
+            {lightbox.images.length > 1 && ` · ${lightbox.index + 1} / ${lightbox.images.length}`}
+          </div>
+        </div>
+      )}
     </>
   );
 }

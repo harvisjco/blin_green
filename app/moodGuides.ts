@@ -4,7 +4,8 @@
 // These are NOT claims that blingreen installed at any named venue — copy
 // must stay in "이런 무드를 원하신다면" framing, never "우리가 시공한 곳" framing.
 // Images are free-license stock photos chosen to evoke the mood/color, not
-// photos of any specific real venue or product brand.
+// photos of any specific real venue or product brand. `image` is the card's
+// cover photo; `gallery` is the full set shown in the lightbox (cover first).
 export const moodGuides = [
   {
     id: "hotel-lobby",
@@ -16,6 +17,10 @@ export const moodGuides = [
     category: "mood" as const,
     image: "https://images.unsplash.com/photo-1759038086832-795644825e3a?auto=format&fit=crop&w=1200&q=80",
     imageCredit: "Unsplash",
+    gallery: [
+      "https://images.unsplash.com/photo-1759038086832-795644825e3a?auto=format&fit=crop&w=1200&q=80",
+      "https://images.unsplash.com/photo-1730367019960-9906d9cbbf05?auto=format&fit=crop&w=1200&q=80",
+    ],
   },
   {
     id: "hotel-bedroom",
@@ -27,6 +32,10 @@ export const moodGuides = [
     category: "mood" as const,
     image: "https://images.unsplash.com/photo-1611892440504-42a792e24d32?auto=format&fit=crop&w=1200&q=80",
     imageCredit: "Unsplash",
+    gallery: [
+      "https://images.unsplash.com/photo-1611892440504-42a792e24d32?auto=format&fit=crop&w=1200&q=80",
+      "https://images.unsplash.com/photo-1648415198825-7c805bfa043e?auto=format&fit=crop&w=1200&q=80",
+    ],
   },
   {
     id: "french-cafe",
@@ -38,6 +47,10 @@ export const moodGuides = [
     category: "mood" as const,
     image: "https://images.unsplash.com/photo-1414235077428-338989a2e8c0?auto=format&fit=crop&w=1200&q=80",
     imageCredit: "Unsplash",
+    gallery: [
+      "https://images.unsplash.com/photo-1414235077428-338989a2e8c0?auto=format&fit=crop&w=1200&q=80",
+      "https://images.unsplash.com/photo-1723130032191-7ea689fccfb6?auto=format&fit=crop&w=1200&q=80",
+    ],
   },
   {
     id: "minimal-resort",
@@ -49,6 +62,10 @@ export const moodGuides = [
     category: "mood" as const,
     image: "https://images.unsplash.com/photo-1724582586529-62622e50c0b3?auto=format&fit=crop&w=1200&q=80",
     imageCredit: "Unsplash",
+    gallery: [
+      "https://images.unsplash.com/photo-1724582586529-62622e50c0b3?auto=format&fit=crop&w=1200&q=80",
+      "https://images.unsplash.com/photo-1776500588044-e42853f74ae4?auto=format&fit=crop&w=1200&q=80",
+    ],
   },
   {
     id: "color-white",
@@ -60,6 +77,10 @@ export const moodGuides = [
     category: "color" as const,
     image: "https://images.unsplash.com/photo-1611822506999-793d04b7ddd8?auto=format&fit=crop&w=1200&q=80",
     imageCredit: "Unsplash",
+    gallery: [
+      "https://images.unsplash.com/photo-1611822506999-793d04b7ddd8?auto=format&fit=crop&w=1200&q=80",
+      "https://images.unsplash.com/photo-1771039621891-bc8be5144895?auto=format&fit=crop&w=1200&q=80",
+    ],
   },
   {
     id: "color-gray",
@@ -71,6 +92,10 @@ export const moodGuides = [
     category: "color" as const,
     image: "https://images.unsplash.com/photo-1776261293170-66fd3b09273e?auto=format&fit=crop&w=1200&q=80",
     imageCredit: "Unsplash",
+    gallery: [
+      "https://images.unsplash.com/photo-1776261293170-66fd3b09273e?auto=format&fit=crop&w=1200&q=80",
+      "https://images.unsplash.com/photo-1540809799-e2eafdd61f18?auto=format&fit=crop&w=1200&q=80",
+    ],
   },
   {
     id: "color-dark",
@@ -82,6 +107,10 @@ export const moodGuides = [
     category: "color" as const,
     image: "https://images.unsplash.com/photo-1674951780257-58bb3b7038e5?auto=format&fit=crop&w=1200&q=80",
     imageCredit: "Unsplash",
+    gallery: [
+      "https://images.unsplash.com/photo-1674951780257-58bb3b7038e5?auto=format&fit=crop&w=1200&q=80",
+      "https://images.unsplash.com/photo-1542799706-c8bc889c7ffd?auto=format&fit=crop&w=1200&q=80",
+    ],
   },
   {
     id: "color-wood",
@@ -93,6 +122,10 @@ export const moodGuides = [
     category: "color" as const,
     image: "https://images.unsplash.com/photo-1582265214834-c02ec775947b?auto=format&fit=crop&w=1200&q=80",
     imageCredit: "Unsplash",
+    gallery: [
+      "https://images.unsplash.com/photo-1582265214834-c02ec775947b?auto=format&fit=crop&w=1200&q=80",
+      "https://images.unsplash.com/photo-1518027322746-3813f2e2bb5d?auto=format&fit=crop&w=1200&q=80",
+    ],
   },
   {
     id: "color-green",
@@ -104,5 +137,9 @@ export const moodGuides = [
     category: "color" as const,
     image: "https://images.unsplash.com/photo-1771039621721-0230d18473b4?auto=format&fit=crop&w=1200&q=80",
     imageCredit: "Unsplash",
+    gallery: [
+      "https://images.unsplash.com/photo-1771039621721-0230d18473b4?auto=format&fit=crop&w=1200&q=80",
+      "https://images.unsplash.com/photo-1706192048400-884d17841d62?auto=format&fit=crop&w=1200&q=80",
+    ],
   },
 ] as const;
