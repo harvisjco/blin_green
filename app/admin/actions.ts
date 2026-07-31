@@ -395,6 +395,7 @@ export async function saveReceivedReview(formData: FormData): Promise<ActionResu
       .where(eq(inquiryReviews.id, row.id));
     revalidatePath("/admin/reviews");
     revalidatePath(`/admin/${inquiryId}`);
+    revalidatePath("/");
     return { ok: true };
   } catch (error) {
     logActionError("saveReceivedReview", error);
@@ -415,6 +416,7 @@ export async function toggleReviewFeatured(formData: FormData): Promise<ActionRe
       .set({ featured: nextFeatured ? 1 : 0 })
       .where(eq(inquiryReviews.id, row.id));
     revalidatePath("/admin/reviews");
+    revalidatePath("/");
     return { ok: true };
   } catch (error) {
     logActionError("toggleReviewFeatured", error);
