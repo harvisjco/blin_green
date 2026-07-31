@@ -189,6 +189,7 @@ footer { padding:45px clamp(24px,5vw,78px) 68px; background:#f3f0e8; display:gri
 .admin-pricewatch-link:hover { border-color:var(--green); }
 .admin-pricewatch-higher { color:#a3372f; }
 .admin-pricewatch-lower { color:#1d5e58; }
+a.admin-pricewatch-higher,a.admin-pricewatch-lower { font-weight:700; text-decoration:underline; text-underline-offset:2px; }
 .admin-card-list { display:none; flex-direction:column; gap:10px; }
 .admin-mobile-card { display:block; padding:14px 16px; background:#fff; border:1px solid var(--line); border-radius:10px; text-decoration:none; color:var(--ink); }
 .admin-mobile-card-top { display:flex; justify-content:space-between; align-items:center; margin-bottom:6px; }

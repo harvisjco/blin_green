@@ -1,6 +1,7 @@
 import { desc } from "drizzle-orm";
+import Link from "next/link";
 import { getDb } from "../../../db";
-import { products } from "../../../db/schema";
+import { competitorPrices, products } from "../../../db/schema";
 import { ActionForm } from "../ActionForm";
 import { createProduct, toggleProductActiveForm, updateProduct } from "../actions";
 import { FormToast } from "../FormToast";
@@ -10,6 +11,15 @@ export const dynamic = "force-dynamic";
 export default async function AdminProductsPage() {
   const db = getDb();
   const rows = await db.select().from(products).orderBy(desc(products.createdAt));
+  const priceRows = await db.select().from(competitorPrices);
+
+  const lowestByProduct = new Map<number, number>();
+  for (const row of priceRows) {
+    const current = lowestByProduct.get(row.productId);
+    if (current === undefined || row.priceWon < current) {
+      lowestByProduct.set(row.productId, row.priceWon);
+    }
+  }
 
   return (
     <main className="admin">
@@ -40,6 +50,7 @@ export default async function AdminProductsPage() {
             <th>판매가(원/m²)</th>
             <th>원가(원/m²)</th>
             <th>마진율</th>
+            <th>경쟁사 최저가 대비</th>
             <th>상태</th>
             <th></th>
           </tr>
@@ -49,6 +60,8 @@ export default async function AdminProductsPage() {
             const margin = product.priceCents > 0
               ? Math.round(((product.priceCents - product.costCents) / product.priceCents) * 100)
               : 0;
+            const lowest = lowestByProduct.get(product.id);
+            const diffFromLowest = lowest !== undefined ? product.priceCents - lowest : null;
             return (
               <tr key={product.id}>
                 <td>{product.family}</td>
@@ -62,6 +75,19 @@ export default async function AdminProductsPage() {
                   </FormToast>
                 </td>
                 <td>{margin}%</td>
+                <td>
+                  {diffFromLowest === null ? (
+                    <Link href="/admin/pricing-watch" className="admin-link-button">가격 기록 추가</Link>
+                  ) : (
+                    <Link
+                      href="/admin/pricing-watch"
+                      className={diffFromLowest > 0 ? "admin-pricewatch-higher" : "admin-pricewatch-lower"}
+                    >
+                      {diffFromLowest > 0 ? "+" : ""}{diffFromLowest.toLocaleString()}원
+                      {diffFromLowest > 0 ? " (더 비쌈)" : diffFromLowest < 0 ? " (더 저렴)" : " (동일)"}
+                    </Link>
+                  )}
+                </td>
                 <td><span className={`admin-badge ${product.active ? "status-scheduled" : "status-cancelled"}`}>{product.active ? "판매중" : "중단"}</span></td>
                 <td>
                   <ActionForm action={toggleProductActiveForm}>
@@ -74,7 +100,7 @@ export default async function AdminProductsPage() {
             );
           })}
           {rows.length === 0 && (
-            <tr><td colSpan={7} className="admin-empty">등록된 제품이 없습니다.</td></tr>
+            <tr><td colSpan={8} className="admin-empty">등록된 제품이 없습니다.</td></tr>
           )}
         </tbody>
       </table>
